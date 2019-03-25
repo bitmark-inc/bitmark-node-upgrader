@@ -10,11 +10,9 @@ import (
 	"github.com/urfave/cli"
 )
 
-var version = "master"
-var commit = "unknown"
-var date = ""
-
 const (
+	updaterVersion   string = "1.0.0"
+	appName          string = "bitmark-node-updater"
 	dockerAPIVersion string = "1.24"
 	logPath          string = "bitmark-node-watcher.log"
 )
@@ -22,8 +20,8 @@ const (
 func main() {
 	// assign it to the standard logger
 	app := cli.NewApp()
-	app.Name = "bitmark-node-updater"
-	app.Version = version + " - " + commit + " - " + date
+	app.Name = appName
+	app.Version = updaterVersion
 	app.Usage = "Automatically update running bitmark-node container"
 	app.Before = before
 	app.Flags = []cli.Flag{
@@ -45,8 +43,8 @@ func main() {
 			Value: "bitmarkNode",
 		},
 		cli.BoolFlag{
-			Name:  "verbose, v",
-			Usage: "log level",
+			Name:  "verbose, vb",
+			Usage: "verbose of log",
 		},
 	}
 
@@ -57,7 +55,7 @@ func main() {
 		}
 		verbose := c.GlobalBool("verbose")
 		log.Init("bitmark-node-updater-log", verbose, false, logfile)
-
+		log.Info("create log file in bitmark-node-updater-log")
 		defer logfile.Close()
 
 		ctx := context.Background()

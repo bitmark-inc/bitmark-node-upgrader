@@ -15,7 +15,7 @@ import (
 
 const (
 	containerStopWaitTime = 15 * time.Second
-	pullImageInterval     = 20 * time.Second
+	pullImageInterval     = 20 * time.Second // Change to a longer Interval after finishing develop
 	recoverWaitTime       = 20 * time.Second
 )
 

@@ -1,4 +1,4 @@
-module bitmark-node-watcher
+module bitmark-node-updater
 
 go 1.12
 
