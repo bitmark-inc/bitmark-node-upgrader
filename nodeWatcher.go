@@ -12,21 +12,22 @@ import (
 	log "github.com/google/logger"
 )
 
-const newImageDownloadIndicator = "Downloaded newer image"
 const (
+	newImageDownloadIndicator = "Downloaded newer image"
+	// Container status
 	containerStateRunning = "running"
 )
 
 // pullImage Pull Specific Image
-func (w *NodeWatcher) pullImage() (updated bool, err error) {
+func (w *NodeWatcher) pullImage() (bool, error) {
 	reader, err := w.DockerClient.ImagePull(w.BackgroundContex, w.Repo, types.ImagePullOptions{})
 	if err != nil {
 		return false, err
 	}
 	defer reader.Close()
 	response, err := ioutil.ReadAll(reader)
-	updated = strings.Contains(string(response), newImageDownloadIndicator)
-	return
+	updated := strings.Contains(string(response), newImageDownloadIndicator)
+	return updated, err
 }
 
 func (w *NodeWatcher) createContainer(config CreateConfig) (container.ContainerCreateCreatedBody, error) {
@@ -48,7 +49,6 @@ func (w *NodeWatcher) getContainersWithImage() ([]types.Container, error) {
 		if err != nil {
 			return targetContainers, err
 		}
-
 		if container.Image == w.ImageName {
 			targetContainers = append(targetContainers, container)
 		}

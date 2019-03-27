@@ -14,13 +14,11 @@ import (
 )
 
 const (
+	// Time Interval
 	containerStopWaitTime = 15 * time.Second
 	pullImageInterval     = 20 * time.Second // Change to a longer Interval after finishing develop
 	recoverWaitTime       = 20 * time.Second
-)
-
-// Database to remove
-const (
+	// Bitmarkd Database to remove
 	nodeDataDirMainnet  = "/.config/bitmark-node/bitmarkd/bitmark/data"
 	nodeDataDirTestnet  = "/.config/bitmark-node/bitmarkd/testing/data"
 	blockLevelDB        = "bitmark-blocks.leveldb"
@@ -51,32 +49,34 @@ func StartMonitor(watcher NodeWatcher) error {
 
 		var newContainer container.ContainerCreateCreatedBody
 		if createConf != nil { // err == nil and createConf == nil => container does not exist
-			newContainer, err = watcher.createContainer(*createConf)
-			if err != nil {
+			container, createContainerErr := watcher.createContainer(*createConf)
+			if createContainerErr != nil {
 				log.Error(ErrCombind(ErrorContainerCreate, err))
 				continue
 			}
+			newContainer = container
 		} else {
 			log.Info("Creating a brand new container")
-			newContainerConfig, err := getDefaultConfig(&watcher)
-			if err != nil {
-				log.Error(ErrCombind(ErrorConfigCreateNew, err))
+			newContainerConfig, createConfigErr := getDefaultConfig(&watcher)
+			if createConfigErr != nil {
+				log.Error(ErrCombind(ErrorConfigCreateNew, createConfigErr))
 				continue
 			}
-			newContainer, err = watcher.createContainer(*newContainerConfig)
-			if err != nil {
+			container, createContainerErr := watcher.createContainer(*newContainerConfig)
+			if createContainerErr != nil {
 				log.Error(ErrCombind(ErrorContainerCreate, err))
 				continue
 			}
+			newContainer = container
 		}
-		err = renameBitmarkDBs()
+		err = renameBitmarkdDB()
 		if err != nil {
 			log.Error(ErrCombind(ErrorRenameDB, err))
 		}
 		err = watcher.startContainer(newContainer.ID)
 		if err != nil {
 			log.Error(ErrCombind(ErrorContainerStart, err))
-			err = recoverBitmarkDBs()
+			err = recoverBitmarkdDB()
 			if err != nil {
 				log.Error(ErrCombind(ErrorRecoverDB, err))
 			}
@@ -84,7 +84,6 @@ func StartMonitor(watcher NodeWatcher) error {
 		}
 		log.Info("Start container successfully")
 	}
-	return nil
 }
 
 // imageUpdateRoutine check image periodically
@@ -277,7 +276,7 @@ func renameDB(src, dest string) (err error) {
 	return err
 }
 
-func renameBitmarkDBs() (finalErr error) {
+func renameBitmarkdDB() (finalErr error) {
 	mainnetBlockDB := nodeDataDirMainnet + "/" + blockLevelDB
 	// XXX: Does not know how to handle error yet; records its error now
 	if err := renameDB(mainnetBlockDB, mainnetBlockDB+oldDBPostfix); err != nil {
@@ -309,7 +308,7 @@ func builDefaultVolumSrcBaseDir(watcher *NodeWatcher) (string, error) {
 	return homeDir, nil
 }
 
-func recoverBitmarkDBs() (finalErr error) {
+func recoverBitmarkdDB() (finalErr error) {
 	mainnetBlockDB := nodeDataDirMainnet + "/" + blockLevelDB
 	if err := renameDB(mainnetBlockDB+oldDBPostfix, mainnetBlockDB); err != nil {
 		finalErr = ErrCombind(finalErr, err)
