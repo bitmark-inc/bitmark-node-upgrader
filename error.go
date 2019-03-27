@@ -30,6 +30,16 @@ var ( // Error variable
 	ErrorCreateWatcher = errors.New("Create NodeWatcher failed")
 )
 
-func ErrCombind(cause, detail error) error {
-	return fmt.Errorf("%s-%s", cause, detail)
+// Combine all Errors together
+func ErrCombind(errs ...error) (finalErr error) {
+	for _, err := range errs {
+		if err != nil {
+			if finalErr != nil {
+				finalErr = fmt.Errorf("%s-%s", finalErr, err)
+			} else {
+				finalErr = fmt.Errorf("%s", err)
+			}
+		}
+	}
+	return finalErr
 }

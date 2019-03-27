@@ -97,10 +97,13 @@ func before(c *cli.Context) error {
 // envConfig translates the command-line options into environment variables
 // that will initialize the api client
 func envConfig(c *cli.Context) error {
-	var err error
-	err = setEnvOptStr("DOCKER_HOST", c.GlobalString("host"))
-	err = setEnvOptStr("DOCKER_API_VERSION", dockerAPIVersion)
-	return err
+	if err := setEnvOptStr("DOCKER_HOST", c.GlobalString("host")); err != nil {
+		return err
+	}
+	if err := setEnvOptStr("DOCKER_API_VERSION", dockerAPIVersion); err != nil {
+		return err
+	}
+	return nil
 }
 
 func setEnvOptStr(env string, opt string) error {

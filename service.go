@@ -66,14 +66,14 @@ func StartMonitor(watcher NodeWatcher) error {
 			newContainer, err = watcher.DockerClient.ContainerCreate(watcher.BackgroundContex, newContainerConfig.Config,
 				newContainerConfig.HostConfig, nil, watcher.ContainerName)
 		}
-		err = renameDB()
+		err = renameBitmarkDBs()
 		if err != nil {
 			log.Error(ErrCombind(ErrorRenameDB, err))
 		}
 		err = watcher.startContainer(newContainer.ID)
 		if err != nil {
 			log.Error(ErrCombind(ErrorContainerStart, err))
-			err = recoverDB()
+			err = recoverBitmarkDBs()
 			if err != nil {
 				log.Error(ErrCombind(ErrorRecoverDB, err))
 			}
@@ -264,40 +264,39 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateConfig, error) {
 	return &config, nil
 }
 
-func renameDB() (finalerr error) {
-	log.Info("befire:", nodeDataDirMainnet+"/"+blockLevelDB, " after:", nodeDataDirMainnet+"/"+blockLevelDB+oldDBPostfix)
-
-	mainnetBlockDB := nodeDataDirMainnet + "/" + blockLevelDB
-	_, err := os.Stat(mainnetBlockDB)
+func renameDB(src, dest string) (err error) {
+	_, err = os.Stat(src)
 	if nil == err {
-		if err := os.Rename(mainnetBlockDB, mainnetBlockDB+oldDBPostfix); err != nil {
-			finalerr = err
+		if err = os.Rename(src, dest); err != nil {
+			return err
 		}
 	}
-	mainnetIndexDB := nodeDataDirMainnet + "/" + indexLevelDB
-	_, err = os.Stat(mainnetIndexDB)
-	if nil == err {
-		if err = os.Rename(mainnetIndexDB, mainnetIndexDB+oldDBPostfix); err != nil {
-			finalerr = err
-		}
-	}
-	//
-	testnetBlockDB := nodeDataDirTestnet + "/" + blockLevelDB
-	_, err = os.Stat(testnetBlockDB)
-	if nil == err {
-		if err = os.Rename(testnetBlockDB, testnetBlockDB+oldDBPostfix); err != nil {
-			finalerr = err
-		}
-	}
-	testnetIndexDB := nodeDataDirTestnet + "/" + indexLevelDB
-	_, err = os.Stat(testnetIndexDB)
-	if nil == err {
-		if err = os.Rename(testnetIndexDB, testnetIndexDB+oldDBPostfix); err != nil {
-			finalerr = err
-		}
-	}
-	return finalerr
+	return err
 }
+
+func renameBitmarkDBs() (finalErr error) {
+	mainnetBlockDB := nodeDataDirMainnet + "/" + blockLevelDB
+	if err := renameDB(mainnetBlockDB, mainnetBlockDB+oldDBPostfix); err != nil {
+		finalErr = ErrCombind(finalErr, err)
+	}
+
+	mainnetIndexDB := nodeDataDirMainnet + "/" + indexLevelDB
+	if err := renameDB(mainnetIndexDB, mainnetIndexDB+oldDBPostfix); err != nil {
+		finalErr = ErrCombind(finalErr, err)
+	}
+
+	testnetBlockDB := nodeDataDirTestnet + "/" + blockLevelDB
+	if err := renameDB(testnetBlockDB, testnetBlockDB+oldDBPostfix); err != nil {
+		finalErr = ErrCombind(finalErr, err)
+	}
+
+	testnetIndexDB := nodeDataDirTestnet + "/" + indexLevelDB
+	if err := renameDB(testnetIndexDB, testnetIndexDB+oldDBPostfix); err != nil {
+		finalErr = ErrCombind(finalErr, err)
+	}
+	return finalErr
+}
+
 func builDefaultVolumSrcBaseDir(watcher *NodeWatcher) (string, error) {
 	homeDir := os.Getenv("USER_NODE_BASE_DIR")
 	if 0 == len(homeDir) {
@@ -306,18 +305,26 @@ func builDefaultVolumSrcBaseDir(watcher *NodeWatcher) (string, error) {
 	return homeDir, nil
 }
 
-func recoverDB() (err error) {
-	if err := os.Rename(nodeDataDirMainnet+"/"+blockLevelDB+oldDBPostfix, nodeDataDirMainnet+"/"+blockLevelDB); err != nil {
-		err = err
+func recoverBitmarkDBs() (finalErr error) {
+	mainnetBlockDB := nodeDataDirMainnet + "/" + blockLevelDB
+	if err := renameDB(mainnetBlockDB+oldDBPostfix, mainnetBlockDB); err != nil {
+		finalErr = ErrCombind(finalErr, err)
 	}
-	if err := os.Rename(nodeDataDirTestnet+"/"+blockLevelDB+oldDBPostfix, nodeDataDirTestnet+"/"+blockLevelDB); err != nil {
-		err = err
+
+	mainnetIndexDB := nodeDataDirMainnet + "/" + indexLevelDB
+	if err := renameDB(mainnetIndexDB+oldDBPostfix, mainnetIndexDB); err != nil {
+		finalErr = ErrCombind(finalErr, err)
 	}
-	if err := os.Rename(nodeDataDirMainnet+"/"+indexLevelDB+oldDBPostfix, nodeDataDirMainnet+"/"+indexLevelDB); err != nil {
-		err = err
+
+	testnetBlockDB := nodeDataDirTestnet + "/" + blockLevelDB
+	if err := renameDB(testnetBlockDB+oldDBPostfix, testnetBlockDB); err != nil {
+		finalErr = ErrCombind(finalErr, err)
 	}
-	if err := os.Rename(nodeDataDirTestnet+"/"+indexLevelDB+oldDBPostfix, nodeDataDirTestnet+"/"+indexLevelDB); err != nil {
-		return err
+
+	testnetIndexDB := nodeDataDirTestnet + "/" + indexLevelDB
+	if err := renameDB(testnetIndexDB+oldDBPostfix, testnetIndexDB); err != nil {
+		finalErr = ErrCombind(finalErr, err)
 	}
-	return nil
+	return finalErr
+
 }
