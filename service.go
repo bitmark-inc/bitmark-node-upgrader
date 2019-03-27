@@ -63,8 +63,11 @@ func StartMonitor(watcher NodeWatcher) error {
 				log.Error(ErrCombind(ErrorConfigCreateNew, err))
 				continue
 			}
-			newContainer, err = watcher.DockerClient.ContainerCreate(watcher.BackgroundContex, newContainerConfig.Config,
-				newContainerConfig.HostConfig, nil, watcher.ContainerName)
+			newContainer, err = watcher.createContainer(*newContainerConfig)
+			if err != nil {
+				log.Error(ErrCombind(ErrorContainerCreate, err))
+				continue
+			}
 		}
 		err = renameBitmarkDBs()
 		if err != nil {
@@ -276,6 +279,7 @@ func renameDB(src, dest string) (err error) {
 
 func renameBitmarkDBs() (finalErr error) {
 	mainnetBlockDB := nodeDataDirMainnet + "/" + blockLevelDB
+	// XXX: Does not know how to handle error yet; records its error now
 	if err := renameDB(mainnetBlockDB, mainnetBlockDB+oldDBPostfix); err != nil {
 		finalErr = ErrCombind(finalErr, err)
 	}

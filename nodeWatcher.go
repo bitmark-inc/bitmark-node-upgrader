@@ -28,6 +28,7 @@ func (w *NodeWatcher) pullImage() (updated bool, err error) {
 	updated = strings.Contains(string(response), newImageDownloadIndicator)
 	return
 }
+
 func (w *NodeWatcher) createContainer(config CreateConfig) (container.ContainerCreateCreatedBody, error) {
 	container, err := w.DockerClient.ContainerCreate(w.BackgroundContex, config.Config, config.HostConfig, config.NetworkingConfig, w.ContainerName)
 	return container, err

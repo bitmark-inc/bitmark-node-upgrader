@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"log"
+
 	"github.com/docker/docker/client"
 	"github.com/stretchr/testify/assert"
-	"log"
 )
 
 var mockData *MockData
@@ -86,7 +87,7 @@ func (mock *MockData) init() error {
 	mock.Chain = "bitmark"
 	// Create Environment Variable
 	mock.Env = make(map[string]string)
-	mock.Env["PUBLIC_IP"] = "127.0.0.1"
+	mock.Env["PUBLIC_IP"] = "0.0.0.0"
 	mock.Env["NETWORK"] = mock.Chain
 	mock.Env["DOCKER_HOST"] = "unix:///var/run/docker.sock"
 	mock.Env["NODE_IMAGE"] = "bitmark/bitmark-node-test"
