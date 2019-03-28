@@ -49,25 +49,24 @@ func StartMonitor(watcher NodeWatcher) error {
 
 		var newContainer container.ContainerCreateCreatedBody
 		if createConf != nil { // err == nil and createConf == nil => container does not exist
-			container, createContainerErr := watcher.createContainer(*createConf)
-			if createContainerErr != nil {
+			newContainer, err = watcher.createContainer(*createConf)
+			if err != nil {
 				log.Error(ErrCombind(ErrorContainerCreate, err))
 				continue
 			}
-			newContainer = container
 		} else {
 			log.Info("Creating a brand new container")
-			newContainerConfig, createConfigErr := getDefaultConfig(&watcher)
-			if createConfigErr != nil {
-				log.Error(ErrCombind(ErrorConfigCreateNew, createConfigErr))
+			var newContainerConfig *CreateConfig
+			newContainerConfig, err = getDefaultConfig(&watcher)
+			if err != nil {
+				log.Error(ErrCombind(ErrorConfigCreateNew, err))
 				continue
 			}
-			container, createContainerErr := watcher.createContainer(*newContainerConfig)
-			if createContainerErr != nil {
+			newContainer, err = watcher.createContainer(*newContainerConfig)
+			if err != nil {
 				log.Error(ErrCombind(ErrorContainerCreate, err))
 				continue
 			}
-			newContainer = container
 		}
 		err = renameBitmarkdDB()
 		if err != nil {
