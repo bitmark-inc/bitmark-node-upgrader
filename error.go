@@ -28,6 +28,9 @@ var ( // Error variable
 
 	// NodeWatcher Errors
 	ErrorCreateWatcher = errors.New("Create NodeWatcher failed")
+
+	// Database Errors
+	ErrorIncompatibleVersionLength = errors.New("Incompatible database version length")
 )
 
 // Combine all Errors together
