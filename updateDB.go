@@ -147,7 +147,7 @@ func (r *DBUpdaterHTTPS) downloadfile() error {
 		if err != nil {
 			return err
 		}
-		r.ZipSourcePath = filepath.Join(baseDir, "levelDB.zip")
+		r.ZipSourcePath = filepath.Join(baseDir, "snapshot.zip")
 	}
 	zipfile, err := os.Create(r.ZipSourcePath)
 	if err != nil {
