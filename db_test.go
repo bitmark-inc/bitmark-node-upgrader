@@ -10,7 +10,7 @@ import (
 
 // Copy folder of bitmark-node-data or bitmark-node-data-test into bitmark-node-data-unit-test for testing
 // and change permission to avoid permission issue when not in docker
-var LevelDBPath = filepath.Join(userHomeDir(), "bitmark-node-data-test")
+var appBaseDir = filepath.Join(userHomeDir(), "bitmark-node-data-test")
 var blockLevelDBPath = filepath.Join(userHomeDir(), "bitmark-node-data-test", "data", "bitmark-index.leveldb")
 
 const (
@@ -20,14 +20,15 @@ const (
 
 func TestReadLevelDB(t *testing.T) {
 	dbUpdater := DBUpdaterHTTPS{LatestChainInfoEndpoint: dataEndpoit, CurrentDBPath: blockLevelDBPath}
-	ver, err := dbUpdater.GetCurrentDBVersion()
+	ver, _, err := dbUpdater.GetCurrentDBVersion()
+	// TODO: for testnet
 	assert.NoError(t, err, fmt.Sprintf("TestReadLevelDB:%s", err))
 	assert.Equal(t, minVer, ver, fmt.Errorf("version is not equal").Error())
 }
 
-func TestGetLatestChainInfo(t *testing.T) {
+func TestGetLatestChain(t *testing.T) {
 	dbUpdater := DBUpdaterHTTPS{LatestChainInfoEndpoint: dataEndpoit}
-	chainInfo, err := dbUpdater.GetLatestChainInfo()
+	chainInfo, err := dbUpdater.GetLatestChain()
 	assert.NoError(t, err, fmt.Sprintf("TestGetLatestChainInfo:%s", err))
 	assert.NotNil(t, chainInfo, fmt.Errorf("TestGetLatestChainInfo: chainInfo is nil"))
 }
@@ -43,46 +44,21 @@ func TestSetDBUpdaterReady(t *testing.T) {
 	assert.NotEqual(t, len(dbUpdater.(*DBUpdaterHTTPS).Latest.DataURL), 0, fmt.Sprintf("TestSetDBUpdaterReady: No Latest DataURL"))
 }
 
-/*
-func TestSetDownloadfile(t *testing.T) {
-	zippath := filepath.Join(LevelDBPath, "test.zip")
-	config := DBUpdaterHTTPSConfig{APIEndpoint: dataEndpoit,
-		CurrentDBPath:   blockLevelDBPath,
-		CurrentDataPath: LevelDBPath,
-		ZipPath:         zippath}
-
-	dbUpdater, err := SetDBUpdaterReady(config)
-	fmt.Println(dbUpdater)
-	assert.NoError(t, err, fmt.Sprintf("TestSetDownloadfile:%s", err))
-	err = dbUpdater.(*DBUpdaterHTTPS).downloadfile()
-	assert.NoError(t, err, fmt.Sprintf("TestSetDownloadfile:%s", err))
-}
-*/
 func TestUpdateToLatestDB(t *testing.T) {
-	baseDir, err := builDefaultVolumSrcBaseDir()
-	assert.NoError(t, err, fmt.Sprintf("TestUpdateToLatestDB:baseDir:%s", err))
+	zipsource := filepath.Join(appBaseDir, "data", "snapshot.zip")
+	zipdestination := filepath.Join(appBaseDir, "data")
 
-	zipsource := filepath.Join(baseDir, "data", "snapshot.zip")
-	zipdestination := filepath.Join(baseDir, "data")
-
-	config := DBUpdaterHTTPSConfig{APIEndpoint: dataEndpoit,
+	config := DBUpdaterHTTPSConfig{
+		APIEndpoint:        dataEndpoit,
 		CurrentDBPath:      blockLevelDBPath,
-		CurrentDataPath:    LevelDBPath,
 		ZipSourcePath:      zipsource,
 		ZipDestinationPath: zipdestination,
 	}
+	fmt.Println(config)
 	dbUpdater, err := SetDBUpdaterReady(config)
 	assert.NoError(t, err, fmt.Sprintf("TestUpdateToLatestDB:SetDBUpdaterReady:%s", err))
 	err = dbUpdater.(*DBUpdaterHTTPS).UpdateToLatestDB()
 	assert.NoError(t, err, fmt.Sprintf("TestUpdateToLatestDB:UpdateToLatestDB:%s", err))
+	// TODO: for testnet
 
 }
-
-/*
-	baseDir, err := builDefaultVolumSrcBaseDir()
-	if err != nil {
-		return err
-	}
-	//dest := filepath.Join("/home/pieceofr2", "bitmark-node-data-unit-test")
-	dest := filepath.Join(baseDir, "data")
-*/

@@ -28,9 +28,9 @@ type CreateConfig struct {
 
 // ChaindataUpdater to get information
 type ChaindataUpdater interface {
-	IsUpdated() bool
-	GetCurrentDBVersion() (int, error)
-	GetLatestChainInfo() (*LatestChain, error)
+	IsUpdated() (main bool, test bool)
+	GetCurrentDBVersion() (mainnet int, testbet int, err error)
+	GetLatestChain() (*LatestChain, error)
 }
 
 // ChaindataUpdaterConfig Config interface
@@ -42,24 +42,34 @@ type ChaindataUpdaterConfig interface {
 type DBUpdaterHTTPS struct {
 	// Endpoint and Path
 	LatestChainInfoEndpoint string
-	CurrentDBPath           string
-	CurrentDataPath         string
-	CurrentDataTestPath     string
-	ZipSourcePath           string
-	ZipDestinationPath      string
-	// Status
+	// Mainnet
+	CurrentDBPath      string
+	ZipSourcePath      string
+	ZipDestinationPath string
+	// Mainnet Status
 	CurrentDBVer int
-	Latest       LatestChain
+	// Testnet
+	CurrentDBTestPath      string
+	CurrentDataTestPath    string
+	ZipSourceTestPath      string
+	ZipDestinationTestPath string
+	// Testnet Status
+	CurrentTestDBVer int
+	Latest           LatestChain
 }
 
 // DBUpdaterHTTPSConfig for configuraion of UpdateDB
 type DBUpdaterHTTPSConfig struct {
-	APIEndpoint         string
-	CurrentDBPath       string
-	CurrentDataPath     string
-	CurrentDataTestPath string
-	ZipSourcePath       string
-	ZipDestinationPath  string
+	APIEndpoint string
+	// Mainnet
+	CurrentDBPath      string
+	ZipSourcePath      string
+	ZipDestinationPath string
+	// Testnet
+	CurrentDBTestPath      string
+	CurrentDataTestPath    string
+	ZipSourceTestPath      string
+	ZipDestinationTestPath string
 }
 
 // GetConfig Get DBUpdaterHTTPSConfig itself
@@ -69,15 +79,27 @@ func (d DBUpdaterHTTPSConfig) GetConfig() ChaindataUpdaterConfig {
 
 // LatestChain latest database info
 type LatestChain struct {
-	Created     string `json:"created"`
-	Version     string `json:"version"`
-	BlockHeight int    `json:"blockheight"`
-	DataURL     string `json:"dataurl"`
+	Created         string `json:"created"`
+	Version         string `json:"version"`
+	BlockHeight     int    `json:"blockheight"`
+	DataURL         string `json:"dataurl"`
+	TestVersion     string `json:"testversion"`
+	TestBlockHeight int64  `json:"testblockheight"`
+	TestDataURL     string `json:"testdataurl"`
 }
 
 // GetVerion return the Version
 func (i *LatestChain) GetVerion() (int, error) {
 	n, err := strconv.ParseInt(i.Version, 0, 64)
+	if err != nil {
+		return 0, err
+	}
+	return int(n), nil
+}
+
+// GetVerionTestnet return the Version
+func (i *LatestChain) GetVerionTestnet() (int, error) {
+	n, err := strconv.ParseInt(i.TestVersion, 0, 64)
 	if err != nil {
 		return 0, err
 	}

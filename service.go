@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -25,6 +26,9 @@ const (
 	indexLevelDB        = "bitmark-index.leveldb"
 	oldCotnainerPostfix = ".old"
 	oldDBPostfix        = ".old"
+	// UpdateDB Endpoint
+	updateDBEndPoint        = "https://0u08da25ba.execute-api.ap-northeast-1.amazonaws.com/v1/chaindata"
+	updateDBMainnetFileName = "snapshot.zip"
 )
 
 // StartMonitor  Monitor process
@@ -37,6 +41,7 @@ func StartMonitor(watcher NodeWatcher) error {
 			go StartMonitor(watcher)
 		}
 	}()
+
 	for {
 		updated := make(chan bool)
 		go imageUpdateRoutine(&watcher, updated)
@@ -176,7 +181,6 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateConfig, error) {
 	config := CreateConfig{}
 
 	baseDir, err := builDefaultVolumSrcBaseDir()
-	log.Info("baseDir:", baseDir)
 	if err != nil {
 		return nil, err
 	}
@@ -263,4 +267,23 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func makeUpdateDBConfig() (DBUpdaterHTTPSConfig, error) {
+	baseDir, err := builDefaultVolumSrcBaseDir()
+	if err != nil {
+		return DBUpdaterHTTPSConfig{}, err
+	}
+	blocklevelDBPath := filepath.Join(baseDir, blockLevelDB)
+
+	updateDBZipFile := filepath.Join(baseDir, "data", updateDBMainnetFileName)
+	updateDBZipExtractDir := filepath.Join(baseDir, "data")
+
+	config := DBUpdaterHTTPSConfig{
+		APIEndpoint:        updateDBEndPoint,
+		CurrentDBPath:      blocklevelDBPath,
+		ZipSourcePath:      updateDBZipFile,
+		ZipDestinationPath: updateDBZipExtractDir,
+	}
+	return config, nil
 }

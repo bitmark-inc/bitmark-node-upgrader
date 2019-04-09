@@ -20,32 +20,33 @@ var versionKey = []byte{0x00, 'V', 'E', 'R', 'S', 'I', 'O', 'N'}
 // SetDBUpdaterReady is to setup the specific type of RemoteLatestChainFetcher and RemoteDBDownloader
 func SetDBUpdaterReady(conf ChaindataUpdaterConfig) (ChaindataUpdater, error) {
 	updaterConfig := conf.(DBUpdaterHTTPSConfig).GetConfig()
-	httpS3Updater := &DBUpdaterHTTPS{
+	httpUpdater := &DBUpdaterHTTPS{
 		LatestChainInfoEndpoint: updaterConfig.(DBUpdaterHTTPSConfig).APIEndpoint,
 		CurrentDBPath:           updaterConfig.(DBUpdaterHTTPSConfig).CurrentDBPath,
-		CurrentDataPath:         updaterConfig.(DBUpdaterHTTPSConfig).CurrentDataPath,
 		CurrentDataTestPath:     updaterConfig.(DBUpdaterHTTPSConfig).CurrentDataTestPath,
 		ZipSourcePath:           updaterConfig.(DBUpdaterHTTPSConfig).ZipSourcePath,
 		ZipDestinationPath:      updaterConfig.(DBUpdaterHTTPSConfig).ZipDestinationPath,
+		ZipSourceTestPath:       updaterConfig.(DBUpdaterHTTPSConfig).ZipSourceTestPath,
+		ZipDestinationTestPath:  updaterConfig.(DBUpdaterHTTPSConfig).ZipDestinationTestPath,
 	}
 	// get the currentDBVersion
-	_, err := httpS3Updater.GetCurrentDBVersion()
+	_, _, err := httpUpdater.GetCurrentDBVersion()
 	if err != nil {
-		return httpS3Updater, err
+		return httpUpdater, err
 	}
-	latest, err := httpS3Updater.GetLatestChainInfo()
+	latest, err := httpUpdater.GetLatestChain()
 	if err != nil {
-		return httpS3Updater, err
+		return httpUpdater, err
 	}
 	if latest != nil {
-		httpS3Updater.Latest = *latest
+		httpUpdater.Latest = *latest
 	}
 
-	return httpS3Updater, nil
+	return httpUpdater, nil
 }
 
 // GetCurrentDBVersion get current chainData version
-func (r *DBUpdaterHTTPS) GetCurrentDBVersion() (int, error) {
+func (r *DBUpdaterHTTPS) GetCurrentDBVersion() (mainnet int, testbet int, err error) {
 
 	opt := &ldb_opt.Options{
 		ErrorIfExist:   false,
@@ -55,42 +56,44 @@ func (r *DBUpdaterHTTPS) GetCurrentDBVersion() (int, error) {
 
 	db, err := leveldb.OpenFile(r.CurrentDBPath, opt)
 	if nil != err {
-		return 0, err
+		return 0, 0, err
 	}
 
 	versionValue, err := db.Get(versionKey, nil)
 	if leveldb.ErrNotFound == err {
-		return 0, nil
+		return 0, 0, nil
 	} else if nil != err {
-		return 0, err
+		return 0, 0, err
 	}
 	if 4 != len(versionValue) {
 		db.Close()
 		log.Errorf("incompatible database version length: expected: %d  actual: %d", 4, len(versionValue))
-		return 0, ErrorIncompatibleVersionLength
+		return 0, 0, ErrorIncompatibleVersionLength
 	}
 	version := int(binary.BigEndian.Uint32(versionValue))
 	r.CurrentDBVer = version
 	db.Close()
-	return version, nil
+	// TODO: need to do update testnet
+	return version, 0, nil
 }
 
 // IsUpdated is current databse updated
-func (r *DBUpdaterHTTPS) IsUpdated() bool {
+func (r *DBUpdaterHTTPS) IsUpdated() (main bool, test bool) {
 	if r.CurrentDBVer != 0 {
 		latestVer, err := r.Latest.GetVerion()
 		if err != nil {
-			return false
+			return false, false
 		}
 		if latestVer != r.CurrentDBVer {
-			return false
+			return false, false
 		}
 	}
-	return true
+
+	return true, true
 }
 
-// GetLatestChainInfo to get latestChainInfo from Retmote
-func (r *DBUpdaterHTTPS) GetLatestChainInfo() (*LatestChain, error) {
+// GetLatestChain to get latestChainInfo from Retmote
+func (r *DBUpdaterHTTPS) GetLatestChain() (*LatestChain, error) {
 	resp, err := http.Get(r.LatestChainInfoEndpoint)
 	if err != nil {
 		return nil, err
@@ -110,37 +113,48 @@ func (r *DBUpdaterHTTPS) GetLatestChainInfo() (*LatestChain, error) {
 
 // UpdateToLatestDB Download latest and update the local database
 func (r *DBUpdaterHTTPS) UpdateToLatestDB() error {
-	if r.IsUpdated() {
+	mainnet, testnet := r.IsUpdated()
+	if mainnet && testnet {
 		log.Info("UpdateToLatestDB IsUpdated")
 		return nil
 	}
+	if !mainnet {
+		err := r.downloadfile("mainnet")
+		if err != nil {
+			return err
+		}
+		err = renameBitmarkdDB()
+		if err != nil {
+			return err
+		}
+		err = unzip(r.ZipSourcePath, r.ZipDestinationPath)
+		if err != nil {
+			recoverErr := recoverBitmarkdDB()
+			r.Latest = LatestChain{}
+			return ErrCombind(err, recoverErr)
+		}
+		fmt.Println("UpdateToLatestDB Successful")
 
-	err := r.downloadfile()
-	if err != nil {
-		return err
+		err = removeFile(r.ZipSourcePath)
+		if err != nil { // nice to have so does not return error even it has error
+			log.Warning("UpdateToLatestDB:remove zip file error:", err)
+		}
 	}
-	err = renameBitmarkdDB()
-	if err != nil {
-		return err
-	}
-	err = unzip(r.ZipSourcePath, r.ZipDestinationPath)
-	if err != nil {
-		recoverErr := recoverBitmarkdDB()
-		r.Latest = LatestChain{}
-		return ErrCombind(err, recoverErr)
-	}
-	fmt.Println("UpdateToLatestDB Successful")
 
-	err = removeFile(r.ZipSourcePath)
-	if err != nil { // nice to have so does not return error even it has error
-		log.Warning("UpdateToLatestDB:remove zip file error:", err)
-	}
+	// TODO:for testnet
 
 	return nil
 }
 
-func (r *DBUpdaterHTTPS) downloadfile() error {
-	resp, err := http.Get(r.Latest.DataURL)
+func (r *DBUpdaterHTTPS) downloadfile(network string) error {
+	var downloadURL string
+	if "testnet" == network {
+		downloadURL = r.Latest.TestDataURL
+	} else {
+		downloadURL = r.Latest.DataURL
+	}
+	resp, err := http.Get(downloadURL)
+
 	if err != nil {
 		return err
 	}
