@@ -130,8 +130,11 @@ func (r *DBUpdaterHTTPS) UpdateToLatestDB() error {
 		return ErrCombind(err, recoverErr)
 	}
 	fmt.Println("UpdateToLatestDB Successful")
-	err = removeFile(r.ZipSourcePath) // nice to have so does not return error even it has error
-	log.Warning("UpdateToLatestDB:remove zip file error:", err)
+	err = removeFile(r.ZipSourcePath)
+	if err != nil { // nice to have so does not return error even it has error
+		log.Warning("UpdateToLatestDB:remove zip file error:", err)
+	}
+
 	return nil
 }
 
