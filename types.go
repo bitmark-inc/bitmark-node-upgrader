@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"os"
 	"strconv"
 
 	"github.com/docker/docker/api/types/container"
@@ -27,35 +26,60 @@ type CreateConfig struct {
 	NetworkingConfig *network.NetworkingConfig
 }
 
-// RemoteInfoServer to get information
-type RemoteInfoServer interface {
-	GetVersion() int
+// ChaindataUpdater to get information
+type ChaindataUpdater interface {
+	IsUpdated() bool
+	GetCurrentDBVersion() (int, error)
+	GetLatestChainInfo() (*LatestChain, error)
 }
 
-// RemoteDBServer is to get chain database
-type RemoteDBServer interface {
-	Download() os.File
+// ChaindataUpdaterConfig Config interface
+type ChaindataUpdaterConfig interface {
+	GetConfig() ChaindataUpdaterConfig
 }
 
-// HTTPRemote use Http to get Information
-type RemoteHTTPS3 struct {
-	InfoEndpoint string
-	APILatestVer string
-	DBEndpoint   string
+// DBUpdaterHTTPS use Http to get Information
+type DBUpdaterHTTPS struct {
+	// Endpoint and Path
+	LatestChainInfoEndpoint string
+	CurrentDBPath           string
+	CurrentDataPath         string
+	CurrentDataTestPath     string
+	ZipSourcePath           string
+	ZipDestinationPath      string
+	// Status
+	CurrentDBVer int
+	Latest       LatestChain
 }
 
-// DBInfo latest database info
-type DBInfo struct {
+// DBUpdaterHTTPSConfig for configuraion of UpdateDB
+type DBUpdaterHTTPSConfig struct {
+	APIEndpoint         string
+	CurrentDBPath       string
+	CurrentDataPath     string
+	CurrentDataTestPath string
+	ZipSourcePath       string
+	ZipDestinationPath  string
+}
+
+// GetConfig Get DBUpdaterHTTPSConfig itself
+func (d DBUpdaterHTTPSConfig) GetConfig() ChaindataUpdaterConfig {
+	return d
+}
+
+// LatestChain latest database info
+type LatestChain struct {
 	Created     string `json:"created"`
 	Version     string `json:"version"`
-	BlockHeight int64  `json:"blockheight"`
+	BlockHeight int    `json:"blockheight"`
 	DataURL     string `json:"dataurl"`
 }
 
-func (i *DBInfo) getVerion() (int64, error) {
+// GetVerion return the Version
+func (i *LatestChain) GetVerion() (int, error) {
 	n, err := strconv.ParseInt(i.Version, 0, 64)
 	if err != nil {
 		return 0, err
 	}
-	return n, nil
+	return int(n), nil
 }

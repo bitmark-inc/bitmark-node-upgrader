@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"os"
-	"runtime"
 	"testing"
 	"time"
 
@@ -171,15 +170,4 @@ func cleanContainers() error {
 		return errors.New("clean container error")
 	}
 	return nil
-}
-
-func userHomeDir() string {
-	if runtime.GOOS == "windows" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			home = os.Getenv("USERPROFILE")
-		}
-		return home
-	}
-	return os.Getenv("HOME")
 }
