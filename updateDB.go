@@ -23,11 +23,8 @@ func SetDBUpdaterReady(conf ChaindataUpdaterConfig) (ChaindataUpdater, error) {
 	httpUpdater := &DBUpdaterHTTPS{
 		LatestChainInfoEndpoint: updaterConfig.(DBUpdaterHTTPSConfig).APIEndpoint,
 		CurrentDBPath:           updaterConfig.(DBUpdaterHTTPSConfig).CurrentDBPath,
-		CurrentDataTestPath:     updaterConfig.(DBUpdaterHTTPSConfig).CurrentDataTestPath,
 		ZipSourcePath:           updaterConfig.(DBUpdaterHTTPSConfig).ZipSourcePath,
 		ZipDestinationPath:      updaterConfig.(DBUpdaterHTTPSConfig).ZipDestinationPath,
-		ZipSourceTestPath:       updaterConfig.(DBUpdaterHTTPSConfig).ZipSourceTestPath,
-		ZipDestinationTestPath:  updaterConfig.(DBUpdaterHTTPSConfig).ZipDestinationTestPath,
 	}
 	// get the currentDBVersion
 	_, _, err := httpUpdater.GetCurrentDBVersion()
