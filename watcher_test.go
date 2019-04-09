@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	"log"
-
 	"github.com/docker/docker/client"
+	log "github.com/google/logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,10 +24,15 @@ type MockData struct {
 }
 
 func TestMain(m *testing.M) {
+	logfile, err := os.OpenFile("unittest.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		fmt.Printf("error opening file: %v", err)
+	}
+	log.Init("bitmark-node-updater-log", true, false, logfile)
 	mockData = &MockData{}
 	mockData.init()
 	if err := cleanContainers(); err != nil {
-		log.Println("Setup Error:", err)
+		fmt.Println("Setup Error:", err)
 		panic("cleanContainer Error")
 	}
 	os.Exit(m.Run())
@@ -94,7 +99,7 @@ func (mock *MockData) init() error {
 	mock.Env["USER_NODE_BASE_DIR"] = mock.BaseDir
 	for k, v := range mock.Env {
 		os.Setenv(k, v)
-		log.Println("key:", k, " val:", v)
+		fmt.Println("key:", k, " val:", v)
 	}
 	mock.SubDir = make(map[string]string)
 	mock.SubDir["dirNodeDB"] = "/db"
@@ -110,7 +115,7 @@ func (mock *MockData) getWatcher() *NodeWatcher {
 }
 
 func (mock *MockData) getSubDir(sub string) string {
-	log.Println("getSubDir:", mock.BaseDir+mock.SubDir[sub])
+	fmt.Println("getSubDir:", mock.BaseDir+mock.SubDir[sub])
 	return mock.BaseDir + mock.SubDir[sub]
 }
 
@@ -162,7 +167,7 @@ func cleanContainers() error {
 		return err
 	}
 	for _, container := range containers {
-		log.Println("Container ID:", container.ID, " is going to be removed")
+		fmt.Println("Container ID:", container.ID, " is going to be removed")
 		watcher.forceRemoveContainer(container.ID)
 	}
 	containers, err = watcher.getContainersWithImage()
