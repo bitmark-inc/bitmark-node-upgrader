@@ -110,12 +110,11 @@ func (r *DBUpdaterHTTPS) GetLatestChainInfo() (*LatestChain, error) {
 
 // UpdateToLatestDB Download latest and update the local database
 func (r *DBUpdaterHTTPS) UpdateToLatestDB() error {
-	/*
-		if r.IsUpdated() {
-			log.Info("UpdateToLatestDB IsUpdated")
-			return nil
-		}
-	*/
+	if r.IsUpdated() {
+		log.Info("UpdateToLatestDB IsUpdated")
+		return nil
+	}
+
 	err := r.downloadfile()
 	if err != nil {
 		return err
@@ -127,9 +126,11 @@ func (r *DBUpdaterHTTPS) UpdateToLatestDB() error {
 	err = unzip(r.ZipSourcePath, r.ZipDestinationPath)
 	if err != nil {
 		recoverErr := recoverBitmarkdDB()
+		r.Latest = LatestChain{}
 		return ErrCombind(err, recoverErr)
 	}
 	fmt.Println("UpdateToLatestDB Successful")
+
 	err = removeFile(r.ZipSourcePath)
 	if err != nil { // nice to have so does not return error even it has error
 		log.Warning("UpdateToLatestDB:remove zip file error:", err)
