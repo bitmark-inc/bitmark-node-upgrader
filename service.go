@@ -41,7 +41,11 @@ func StartMonitor(watcher NodeWatcher) error {
 			go StartMonitor(watcher)
 		}
 	}()
-
+	updateDBConf, err := makeUpdateDBConfig()
+	if err != nil {
+		log.Error(err)
+		return err
+	}
 	for {
 		updated := make(chan bool)
 		go imageUpdateRoutine(&watcher, updated)
@@ -73,9 +77,15 @@ func StartMonitor(watcher NodeWatcher) error {
 				continue
 			}
 		}
-		err = renameBitmarkdDB()
+		dbUpdater, err := SetDBUpdaterReady(updateDBConf)
 		if err != nil {
-			log.Error(ErrCombind(ErrorRenameDB, err))
+			log.Error(ErrCombind(ErrorSetDBUpdaterReady, err))
+			continue
+		}
+		err = dbUpdater.(*DBUpdaterHTTPS).UpdateToLatestDB()
+		if err != nil {
+			log.Error(ErrCombind(ErrorUpdateToLatestDB, err))
+			continue
 		}
 		err = watcher.startContainer(newContainer.ID)
 		if err != nil {

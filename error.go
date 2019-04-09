@@ -31,6 +31,10 @@ var ( // Error variable
 
 	// Database Errors
 	ErrorIncompatibleVersionLength = errors.New("Incompatible database version length")
+
+	// DBUpdater Errors
+	ErrorSetDBUpdaterReady = errors.New("SetDBUpdaterReady failed")
+	ErrorUpdateToLatestDB  = errors.New("UpdateToLatestDB failed")
 )
 
 // Combine all Errors together
