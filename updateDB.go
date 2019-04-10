@@ -70,6 +70,7 @@ func (r *DBUpdaterHTTPS) GetCurrentDBVersion() (mainnet int, testbet int, err er
 	version := int(binary.BigEndian.Uint32(versionValue))
 	r.CurrentDBVer = version
 	db.Close()
+	log.Info("GetCurrentDBVersion Successfully")
 	// TODO: need to do update testnet
 	return version, 0, nil
 }

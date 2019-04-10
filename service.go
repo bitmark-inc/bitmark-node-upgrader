@@ -284,7 +284,7 @@ func makeUpdateDBConfig() (DBUpdaterHTTPSConfig, error) {
 	if err != nil {
 		return DBUpdaterHTTPSConfig{}, err
 	}
-	blocklevelDBPath := filepath.Join(baseDir, blockLevelDB)
+	blocklevelDBPath := filepath.Join(baseDir, "data", blockLevelDB)
 
 	updateDBZipFile := filepath.Join(baseDir, "data", updateDBMainnetFileName)
 	updateDBZipExtractDir := filepath.Join(baseDir, "data")
