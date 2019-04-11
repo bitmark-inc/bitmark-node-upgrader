@@ -282,7 +282,7 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateConfig, error) {
 }
 
 func makeUpdateDBConfig() (DBUpdaterHTTPSConfig, error) {
-	baseTargetDir := "/.config/bitmark-node"
+	baseTargetDir := "/.config/bitmark-node/bitmarkd/bitmark"
 	blocklevelDBPath := filepath.Join(baseTargetDir, "data", blockLevelDB)
 	updateDBZipFile := filepath.Join(baseTargetDir, "data", updateDBMainnetFileName)
 	updateDBZipExtractDir := filepath.Join(baseTargetDir, "data")
