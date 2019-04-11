@@ -35,6 +35,7 @@ const (
 func StartMonitor(watcher NodeWatcher) error {
 	log.Info("Monitoring Process Start")
 	defer func() {
+		log.Warning("StartMonitor Exit")
 		if r := recover(); r != nil {
 			log.Error(ErrorStartMonitorService.Error() + ": waiting for restart service")
 			time.Sleep(recoverWaitTime)
@@ -58,6 +59,7 @@ func StartMonitor(watcher NodeWatcher) error {
 
 		var newContainer container.ContainerCreateCreatedBody
 		if createConf != nil { // err == nil and createConf == nil => container does not exist
+			log.Info("Creating a container from existing container")
 			newContainer, err = watcher.createContainer(*createConf)
 			if err != nil {
 				log.Error(ErrCombind(ErrorContainerCreate, err))
@@ -280,14 +282,10 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateConfig, error) {
 }
 
 func makeUpdateDBConfig() (DBUpdaterHTTPSConfig, error) {
-	baseDir, err := builDefaultVolumSrcBaseDir()
-	if err != nil {
-		return DBUpdaterHTTPSConfig{}, err
-	}
-	blocklevelDBPath := filepath.Join(baseDir, "data", blockLevelDB)
-
-	updateDBZipFile := filepath.Join(baseDir, "data", updateDBMainnetFileName)
-	updateDBZipExtractDir := filepath.Join(baseDir, "data")
+	baseTargetDir := "/.config/bitmark-node"
+	blocklevelDBPath := filepath.Join(baseTargetDir, "data", blockLevelDB)
+	updateDBZipFile := filepath.Join(baseTargetDir, "data", updateDBMainnetFileName)
+	updateDBZipExtractDir := filepath.Join(baseTargetDir, "data")
 
 	config := DBUpdaterHTTPSConfig{
 		APIEndpoint:        updateDBEndPoint,

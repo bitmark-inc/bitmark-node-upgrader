@@ -29,7 +29,9 @@ func SetDBUpdaterReady(conf ChaindataUpdaterConfig) (ChaindataUpdater, error) {
 	// get the currentDBVersion
 	_, _, err := httpUpdater.GetCurrentDBVersion()
 	if err != nil {
-		return httpUpdater, err
+		if os.IsExist(err) {
+			return httpUpdater, err
+		}
 	}
 	latest, err := httpUpdater.GetLatestChain()
 	if err != nil {
