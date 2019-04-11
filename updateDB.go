@@ -29,7 +29,7 @@ func SetDBUpdaterReady(conf ChaindataUpdaterConfig) (ChaindataUpdater, error) {
 	// get the currentDBVersion
 	_, _, err := httpUpdater.GetCurrentDBVersion()
 	if err != nil {
-		if os.IsExist(err) {
+		if !os.IsNotExist(err) {
 			return httpUpdater, err
 		}
 	}
@@ -87,9 +87,11 @@ func (r *DBUpdaterHTTPS) IsUpdated() (main bool, test bool) {
 		if latestVer != r.CurrentDBVer {
 			return false, false
 		}
+		return true, true
+	} else {
+		return false, true
 	}
 
-	return true, true
 }
 
 // GetLatestChain to get latestChainInfo from Retmote
@@ -156,6 +158,7 @@ func (r *DBUpdaterHTTPS) downloadfile(network string) error {
 	resp, err := http.Get(downloadURL)
 
 	if err != nil {
+		log.Error("Get file error:", err)
 		return err
 	}
 	defer resp.Body.Close()
@@ -165,7 +168,7 @@ func (r *DBUpdaterHTTPS) downloadfile(network string) error {
 		if err != nil {
 			return err
 		}
-		r.ZipSourcePath = filepath.Join(baseDir, "snapshot.zip")
+		r.ZipSourcePath = filepath.Join(baseDir, "data", "snapshot.zip")
 	}
 	zipfile, err := os.Create(r.ZipSourcePath)
 	if err != nil {

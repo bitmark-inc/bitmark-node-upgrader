@@ -49,8 +49,9 @@ func StartMonitor(watcher NodeWatcher) error {
 	}
 	for {
 		updated := make(chan bool)
-		go imageUpdateRoutine(&watcher, updated)
+		go imageUpdateCheckRoutine(&watcher, updated)
 		<-updated
+		log.Info("Start to Update New Image")
 		createConf, err := handleExistingContainer(watcher)
 		if err != nil {
 			log.Error(ErrCombind(ErrorHandleExistingContainer, err))
@@ -103,7 +104,7 @@ func StartMonitor(watcher NodeWatcher) error {
 }
 
 // imageUpdateRoutine check image periodically
-func imageUpdateRoutine(w *NodeWatcher, updateStatus chan bool) {
+func imageUpdateCheckRoutine(w *NodeWatcher, updateStatus chan bool) {
 	ticker := time.NewTicker(pullImageInterval)
 	defer func() {
 		ticker.Stop()
@@ -115,7 +116,7 @@ func imageUpdateRoutine(w *NodeWatcher, updateStatus chan bool) {
 		log.Info(ErrCombind(ErrorImagePull, err).Error())
 	}
 	if newImage {
-		log.Info("imageUpdateRoutine update a new image")
+		log.Info("imageUpdateCheckRoutine found a new image")
 		updateStatus <- true
 	}
 	// End of the first time ---- can be delete later
@@ -128,10 +129,11 @@ func imageUpdateRoutine(w *NodeWatcher, updateStatus chan bool) {
 				continue
 			}
 			if newImage {
-				log.Info("imageUpdateRoutine update a new image")
+				log.Info("imageUpdateCheckRoutine found a new image")
 				updateStatus <- true
 				break
 			}
+			// TODO: remove log
 			log.Info("no new image found")
 		}
 	}
@@ -282,16 +284,15 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateConfig, error) {
 }
 
 func makeUpdateDBConfig() (DBUpdaterHTTPSConfig, error) {
-	baseTargetDir := "/.config/bitmark-node/bitmarkd/bitmark"
-	blocklevelDBPath := filepath.Join(baseTargetDir, "data", blockLevelDB)
-	updateDBZipFile := filepath.Join(baseTargetDir, "data", updateDBMainnetFileName)
-	updateDBZipExtractDir := filepath.Join(baseTargetDir, "data")
+	targetZipDir := "/.config/bitmark-node/bitmarkd/bitmark/data"
+	blocklevelDBPath := filepath.Join(targetZipDir, blockLevelDB)
+	updateDBZipFile := filepath.Join(targetZipDir, updateDBMainnetFileName)
 
 	config := DBUpdaterHTTPSConfig{
 		APIEndpoint:        updateDBEndPoint,
 		CurrentDBPath:      blocklevelDBPath,
 		ZipSourcePath:      updateDBZipFile,
-		ZipDestinationPath: updateDBZipExtractDir,
+		ZipDestinationPath: targetZipDir,
 	}
 	return config, nil
 }
