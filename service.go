@@ -118,6 +118,7 @@ func imageUpdateCheckRoutine(w *NodeWatcher, updateStatus chan bool) {
 	if newImage {
 		log.Info("imageUpdateCheckRoutine found a new image")
 		updateStatus <- true
+		return
 	}
 	// End of the first time ---- can be delete later
 	for { // start  periodically check routine

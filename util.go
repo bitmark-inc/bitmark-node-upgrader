@@ -34,13 +34,22 @@ func userHomeDir() string {
 }
 
 func renameDB(src, dest string) (err error) {
+	_, err = os.Stat(dest)
+	if nil == err { //old dir exist, remove it
+		if os.IsExist(err) {
+			rmErr := os.RemoveAll(dest)
+			if rmErr != nil {
+				return rmErr
+			}
+		}
+	}
 	_, err = os.Stat(src)
 	if nil == err {
 		if err = os.Rename(src, dest); err != nil {
 			return err
 		}
 		return nil
-	} else if os.IsNotExist(err) {
+	} else if os.IsNotExist(err) { // src does not exist, is not an error in the case
 		return nil
 	}
 	return err
@@ -50,7 +59,7 @@ func renameBitmarkdDB() (finalErr error) {
 	mainnetBlockDB := nodeDataDirMainnet + "/" + blockLevelDB
 	// XXX: Does not know how to handle error yet; records its error now
 	if err := renameDB(mainnetBlockDB, mainnetBlockDB+oldDBPostfix); err != nil {
-		if !os.IsNotExist(err) {
+		if !os.IsExist(err) {
 			finalErr = ErrCombind(finalErr, err)
 		}
 	}
