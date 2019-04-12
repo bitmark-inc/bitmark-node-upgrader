@@ -68,7 +68,7 @@ func StartMonitor(watcher NodeWatcher) error {
 			}
 		} else {
 			log.Info("Creating a brand new container")
-			var newContainerConfig *CreateConfig
+			var newContainerConfig *CreateContainerConfig
 			newContainerConfig, err = getDefaultConfig(&watcher)
 			if err != nil {
 				log.Error(ErrCombind(ErrorConfigCreateNew, err))
@@ -141,7 +141,7 @@ func imageUpdateCheckRoutine(w *NodeWatcher, updateStatus chan bool) {
 }
 
 // handleExistingContainer handle existing container and return old container config for recreating a new container
-func handleExistingContainer(watcher NodeWatcher) (*CreateConfig, error) {
+func handleExistingContainer(watcher NodeWatcher) (*CreateContainerConfig, error) {
 	nodeContainers, err := watcher.getContainersWithImage()
 	if err != nil { //not found is not an error
 		log.Error(ErrCombind(ErrorGetContainerWithImage, err))
@@ -186,14 +186,14 @@ func handleExistingContainer(watcher NodeWatcher) (*CreateConfig, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &CreateConfig{Config: &newConfig, HostConfig: jsonConfig.HostConfig, NetworkingConfig: &newNetworkConf}, err
+		return &CreateContainerConfig{Config: &newConfig, HostConfig: jsonConfig.HostConfig, NetworkingConfig: &newNetworkConf}, err
 	}
 	// no container
 	return nil, nil
 }
 
-func getDefaultConfig(watcher *NodeWatcher) (*CreateConfig, error) {
-	config := CreateConfig{}
+func getDefaultConfig(watcher *NodeWatcher) (*CreateContainerConfig, error) {
+	config := CreateContainerConfig{}
 
 	baseDir, err := builDefaultVolumSrcBaseDir()
 	if err != nil {

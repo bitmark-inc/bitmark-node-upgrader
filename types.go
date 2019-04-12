@@ -20,7 +20,7 @@ type NodeWatcher struct {
 }
 
 // CreateConfig collect configs to create a container
-type CreateConfig struct {
+type CreateContainerConfig struct {
 	Config           *container.Config
 	HostConfig       *container.HostConfig
 	NetworkingConfig *network.NetworkingConfig

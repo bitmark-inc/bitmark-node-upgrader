@@ -4,6 +4,7 @@ package main
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -30,7 +31,7 @@ func (w *NodeWatcher) pullImage() (bool, error) {
 	return updated, err
 }
 
-func (w *NodeWatcher) createContainer(config CreateConfig) (container.ContainerCreateCreatedBody, error) {
+func (w *NodeWatcher) createContainer(config CreateContainerConfig) (container.ContainerCreateCreatedBody, error) {
 	container, err := w.DockerClient.ContainerCreate(w.BackgroundContex, config.Config, config.HostConfig, config.NetworkingConfig, w.ContainerName)
 	return container, err
 }
@@ -62,7 +63,7 @@ func (w *NodeWatcher) getOldContainer() (*types.Container, error) {
 	if err != nil {
 		return nil, err
 	}
-	oldContainerName := "/" + w.ContainerName + w.Postfix
+	oldContainerName := filepath.Join("/", w.ContainerName) + w.Postfix
 	for _, container := range containers {
 		if container.Names[0] == oldContainerName {
 			return &container, nil
@@ -118,7 +119,7 @@ func (w *NodeWatcher) renameContainer(container *types.Container) error {
 }
 
 func (w *NodeWatcher) getNamedContainer(c []types.Container) *types.Container {
-	compareName := "/" + w.ContainerName
+	compareName := filepath.Join("/", w.ContainerName)
 	for _, container := range c {
 		for _, n := range container.Names {
 			log.Info("getNamedContainer name:", n)
@@ -130,7 +131,7 @@ func (w *NodeWatcher) getNamedContainer(c []types.Container) *types.Container {
 	return nil
 }
 func (w *NodeWatcher) checkOldContainer(c []types.Container) types.Container {
-	compareName := "/" + w.ContainerName + w.Postfix
+	compareName := filepath.Join("/", w.ContainerName) + w.Postfix
 	for _, container := range c {
 		for _, n := range container.Names {
 			log.Info("checkOldContainer name:", n)
