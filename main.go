@@ -17,6 +17,9 @@ const (
 	logPath          string = "bitmark-node-watcher.log"
 )
 
+var userPath UserPath
+var dockerPath DockerPath
+
 func main() {
 	// assign it to the standard logger
 	app := cli.NewApp()
@@ -68,9 +71,36 @@ func main() {
 		dockerImage := c.GlobalString("image")
 		dockerRepo := "docker.io/" + dockerImage
 		containerName := c.GlobalString("name")
-		watcher := NodeWatcher{DockerClient: client, BackgroundContex: ctx,
-			Repo: dockerRepo, ImageName: dockerImage, ContainerName: containerName, Postfix: oldDBPostfix}
+		baseDir, err := builDefaultVolumSrcBaseDir()
+		if err != nil {
+			return err
+		}
 
+		userPath = UserPath{
+			BaseDir:        baseDir,
+			NodeDBDir:      "db",
+			MainnetDataDir: "data",
+			TestnetDataDir: "data-test",
+			MainnetLogDir:  "log",
+			TestnetLogDir:  "log-test",
+		}
+
+		dockerPath = DockerPath{
+			BaseDir:             "/.config/bitmark-node",
+			NodeDBDir:           "db",
+			MainnetDataDir:      "bitmarkd/bitmark/data",
+			TestnetDataDir:      "bitmarkd/testing/data",
+			MainnetLogDir:       "bitmarkd/bitmark/log",
+			TestnetLogDir:       "bitmarkd/testing/log",
+			OldContainerPostfix: ".old",
+			OldDatabasePostfix:  ".old",
+			BlockDBDirName:      "bitmark-blocks.leveldb",
+			IndexDBDirName:      "bitmark-index.leveldb",
+			UpdateDBZipName:     "snapshot.zip",
+		}
+
+		watcher := NodeWatcher{DockerClient: client, BackgroundContex: ctx,
+			Repo: dockerRepo, ImageName: dockerImage, ContainerName: containerName, Postfix: dockerPath.OldContainerPostfix}
 		err = StartMonitor(watcher)
 		if err != nil {
 			log.Errorf(ErrorStartMonitorService.Error(), " image name:", watcher.ImageName)

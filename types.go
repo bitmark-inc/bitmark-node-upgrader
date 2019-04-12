@@ -9,6 +9,31 @@ import (
 	dockerClient "github.com/docker/docker/client"
 )
 
+// UserPath is uesed to store user file path
+type UserPath struct {
+	BaseDir        string
+	NodeDBDir      string
+	MainnetDataDir string
+	TestnetDataDir string
+	MainnetLogDir  string
+	TestnetLogDir  string
+}
+
+// DockerPath is uesed to store docker file path
+type DockerPath struct {
+	BaseDir             string
+	NodeDBDir           string
+	MainnetDataDir      string
+	TestnetDataDir      string
+	MainnetLogDir       string
+	TestnetLogDir       string
+	OldContainerPostfix string
+	OldDatabasePostfix  string
+	BlockDBDirName      string
+	IndexDBDirName      string
+	UpdateDBZipName     string
+}
+
 // NodeWatcher main data structure of service
 type NodeWatcher struct {
 	DockerClient     *dockerClient.Client

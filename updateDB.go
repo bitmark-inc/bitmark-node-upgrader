@@ -91,7 +91,6 @@ func (r *DBUpdaterHTTPS) IsUpdated() (main bool, test bool) {
 	} else {
 		return false, true
 	}
-
 }
 
 // GetLatestChain to get latestChainInfo from Retmote

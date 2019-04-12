@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -19,16 +18,8 @@ const (
 	containerStopWaitTime = 15 * time.Second
 	pullImageInterval     = 20 * time.Second // Change to a longer Interval after finishing develop
 	recoverWaitTime       = 20 * time.Second
-	// Bitmarkd Database to remove
-	nodeDataDirMainnet  = "/.config/bitmark-node/bitmarkd/bitmark/data"
-	nodeDataDirTestnet  = "/.config/bitmark-node/bitmarkd/testing/data"
-	blockLevelDB        = "bitmark-blocks.leveldb"
-	indexLevelDB        = "bitmark-index.leveldb"
-	oldCotnainerPostfix = ".old"
-	oldDBPostfix        = ".old"
 	// UpdateDB Endpoint
-	updateDBEndPoint        = "https://0u08da25ba.execute-api.ap-northeast-1.amazonaws.com/v1/chaindata"
-	updateDBMainnetFileName = "snapshot.zip"
+	updateDBEndPoint = "https://0u08da25ba.execute-api.ap-northeast-1.amazonaws.com/v1/chaindata"
 )
 
 // StartMonitor  Monitor process
@@ -195,19 +186,13 @@ func handleExistingContainer(watcher NodeWatcher) (*CreateContainerConfig, error
 func getDefaultConfig(watcher *NodeWatcher) (*CreateContainerConfig, error) {
 	config := CreateContainerConfig{}
 
-	baseDir, err := builDefaultVolumSrcBaseDir()
-	if err != nil {
-		return nil, err
-	}
-
-	baseTargetDir := "/.config/bitmark-node"
 	publicIP := os.Getenv("PUBLIC_IP")
 	chain := os.Getenv("NETWORK")
 	if len(publicIP) == 0 {
 		publicIP = "127.0.0.1"
 	}
 	if len(chain) == 0 {
-		chain = "BITMARK"
+		chain = "bitmark"
 	}
 	additionEnv := append([]string{}, "PUBLIC_IP="+publicIP, "NETWORK="+chain)
 	exposePorts := nat.PortMap{
@@ -243,28 +228,28 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateContainerConfig, error) {
 		Mounts: []mount.Mount{
 			{
 				Type:   mount.TypeBind,
-				Source: baseDir + "/db",
-				Target: baseTargetDir + "/db",
+				Source: userPath.GetNodeDBPath(),
+				Target: dockerPath.GetNodeDBPath(),
 			},
 			{
 				Type:   mount.TypeBind,
-				Source: baseDir + "/data",
-				Target: baseTargetDir + "/bitmarkd/bitmark/data",
+				Source: userPath.GetDataPath(userPath.GetMainnet()),
+				Target: dockerPath.GetDataPath(userPath.GetMainnet()),
 			},
 			{
 				Type:   mount.TypeBind,
-				Source: baseDir + "/data-test",
-				Target: baseTargetDir + "/bitmarkd/testing/data",
+				Source: userPath.GetDataPath(userPath.GetTestnet()),
+				Target: dockerPath.GetDataPath(userPath.GetTestnet()),
 			},
 			{
 				Type:   mount.TypeBind,
-				Source: baseDir + "/log",
-				Target: baseTargetDir + "/bitmarkd/bitmark/log",
+				Source: userPath.GetLogPath(userPath.GetMainnet()),
+				Target: dockerPath.GetLogPath(dockerPath.GetMainnet()),
 			},
 			{
 				Type:   mount.TypeBind,
-				Source: baseDir + "/log-test",
-				Target: baseTargetDir + "/bitmarkd/testing/log",
+				Source: userPath.GetLogPath(userPath.GetTestnet()),
+				Target: dockerPath.GetLogPath(dockerPath.GetTestnet()),
 			},
 		},
 	}
@@ -285,15 +270,11 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateContainerConfig, error) {
 }
 
 func makeUpdateDBConfig() (DBUpdaterHTTPSConfig, error) {
-	targetZipDir := "/.config/bitmark-node/bitmarkd/bitmark/data"
-	blocklevelDBPath := filepath.Join(targetZipDir, blockLevelDB)
-	updateDBZipFile := filepath.Join(targetZipDir, updateDBMainnetFileName)
-
 	config := DBUpdaterHTTPSConfig{
 		APIEndpoint:        updateDBEndPoint,
-		CurrentDBPath:      blocklevelDBPath,
-		ZipSourcePath:      updateDBZipFile,
-		ZipDestinationPath: targetZipDir,
+		CurrentDBPath:      dockerPath.GetBlockDBPath(userPath.GetMainnet()),
+		ZipSourcePath:      dockerPath.GetUpdateDBZipFilePath(dockerPath.GetMainnet()),
+		ZipDestinationPath: dockerPath.GetDataPath(dockerPath.GetMainnet()),
 	}
 	return config, nil
 }

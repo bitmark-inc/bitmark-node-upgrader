@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -16,11 +17,11 @@ import (
 var mockData *MockData
 
 type MockData struct {
-	Watcher NodeWatcher
-	BaseDir string
-	Chain   string
-	SubDir  map[string]string
-	Env     map[string]string
+	Watcher    NodeWatcher
+	userPath   UserPath
+	dockerPath DockerPath
+	Chain      string
+	Env        map[string]string
 }
 
 func TestMain(m *testing.M) {
@@ -80,14 +81,40 @@ func (mock *MockData) init() error {
 	if err != nil {
 		return err
 	}
+	baseDir := filepath.Join(userHomeDir(), "bitmark-node-data-test")
+	if err != nil {
+		return err
+	}
+	userPath = UserPath{
+		BaseDir:        baseDir,
+		NodeDBDir:      "db",
+		MainnetDataDir: "data",
+		TestnetDataDir: "data-test",
+		MainnetLogDir:  "log",
+		TestnetLogDir:  "log-test",
+	}
+
+	dockerPath = DockerPath{
+		BaseDir:             "/.config/bitmark-node",
+		NodeDBDir:           "db",
+		MainnetDataDir:      "bitmarkd/bitmark/data",
+		TestnetDataDir:      "bitmarkd/testing/data",
+		MainnetLogDir:       "bitmarkd/bitmark/log",
+		TestnetLogDir:       "bitmarkd/testing/log",
+		OldContainerPostfix: ".old",
+		OldDatabasePostfix:  ".old",
+		BlockDBDirName:      "bitmark-blocks.leveldb",
+		IndexDBDirName:      "bitmark-index.leveldb",
+		UpdateDBZipName:     "snapshot.zip",
+	}
+
 	mock.Watcher = NodeWatcher{DockerClient: client, BackgroundContex: ctx,
 		Repo:          "docker.io/bitmark/bitmark-node-test",
 		ImageName:     "bitmark/bitmark-node-test",
 		ContainerName: "bitmarkNodeTest",
-		Postfix:       oldCotnainerPostfix}
+		Postfix:       dockerPath.OldContainerPostfix}
 	// Create Directory For Test
 	mock.createDir()
-	mock.BaseDir = userHomeDir() + "/bitmark-node-data-test"
 	mock.Chain = "bitmark"
 	// Create Environment Variable
 	mock.Env = make(map[string]string)
@@ -96,17 +123,11 @@ func (mock *MockData) init() error {
 	mock.Env["DOCKER_HOST"] = "unix:///var/run/docker.sock"
 	mock.Env["NODE_IMAGE"] = "bitmark/bitmark-node-test"
 	mock.Env["NODE_NAME"] = "bitmarkNodeTest"
-	mock.Env["USER_NODE_BASE_DIR"] = mock.BaseDir
+	mock.Env["USER_NODE_BASE_DIR"] = baseDir
 	for k, v := range mock.Env {
 		os.Setenv(k, v)
 		fmt.Println("key:", k, " val:", v)
 	}
-	mock.SubDir = make(map[string]string)
-	mock.SubDir["dirNodeDB"] = "/db"
-	mock.SubDir["dirMainDB"] = "/data"
-	mock.SubDir["dirTestDB"] = "/data-test"
-	mock.SubDir["dirMainLog"] = "/log"
-	mock.SubDir["dirTestLog"] = "/log-test"
 	// Create sub directory  names
 	return nil
 }
@@ -114,45 +135,44 @@ func (mock *MockData) getWatcher() *NodeWatcher {
 	return &mock.Watcher
 }
 
-func (mock *MockData) getSubDir(sub string) string {
-	fmt.Println("getSubDir:", mock.BaseDir+mock.SubDir[sub])
-	return mock.BaseDir + mock.SubDir[sub]
-}
-
 func (mock *MockData) createDir() error {
-	// Remove file if exist
-	if _, err := os.Stat(mock.BaseDir); nil == err {
-		os.RemoveAll(mock.BaseDir)
-	}
+
 	//Create file Dirs
-	if err := os.MkdirAll(mock.getSubDir("dirNodeDB"), 0700); err != nil {
+	tempDir := mock.dockerPath.GetNodeDBPath()
+	if err := os.MkdirAll(tempDir, 0700); err != nil {
 		return err
 	}
-	if _, err := os.Stat(mock.getSubDir("dirNodeDB")); os.IsNotExist(err) {
+	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
 		return err
 	}
-	if err := os.MkdirAll(mock.getSubDir("dirMainDB"), 0700); err != nil {
+	tempDir = mock.dockerPath.GetDataPath(dockerPath.GetMainnet())
+	if err := os.MkdirAll(tempDir, 0700); err != nil {
 		return err
 	}
-	if _, err := os.Stat(mock.getSubDir("dirMainDB")); os.IsNotExist(err) {
+	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
 		return err
 	}
-	if err := os.MkdirAll(mock.getSubDir("dirTestDB"), 0700); err != nil {
+
+	tempDir = mock.dockerPath.GetDataPath(dockerPath.GetTestnet())
+	if err := os.MkdirAll(tempDir, 0700); err != nil {
 		return err
 	}
-	if _, err := os.Stat(mock.getSubDir("dirTestDB")); os.IsNotExist(err) {
+	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
 		return err
 	}
-	if err := os.MkdirAll(mock.getSubDir("dirMainLog"), 0700); err != nil {
+
+	tempDir = mock.dockerPath.GetLogPath(dockerPath.GetMainnet())
+	if err := os.MkdirAll(tempDir, 0700); err != nil {
 		return err
 	}
-	if _, err := os.Stat(mock.getSubDir("dirMainLog")); os.IsNotExist(err) {
+	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
 		return err
 	}
-	if err := os.MkdirAll(mock.getSubDir("dirTestLog"), 0700); err != nil {
+	tempDir = mock.dockerPath.GetLogPath(dockerPath.GetTestnet())
+	if err := os.MkdirAll(tempDir, 0700); err != nil {
 		return err
 	}
-	if _, err := os.Stat(mock.getSubDir("dirTestLog")); os.IsNotExist(err) {
+	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
 		return err
 	}
 	return nil

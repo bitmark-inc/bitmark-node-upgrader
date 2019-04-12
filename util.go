@@ -36,11 +36,9 @@ func userHomeDir() string {
 func renameDB(src, dest string) (err error) {
 	_, err = os.Stat(dest)
 	if nil == err { //old dir exist, remove it
-		if os.IsExist(err) {
-			rmErr := os.RemoveAll(dest)
-			if rmErr != nil {
-				return rmErr
-			}
+		rmErr := os.RemoveAll(dest)
+		if rmErr != nil {
+			return rmErr
 		}
 	}
 	_, err = os.Stat(src)
@@ -56,34 +54,32 @@ func renameDB(src, dest string) (err error) {
 }
 
 func renameBitmarkdDB() (finalErr error) {
-	mainnetBlockDB := filepath.Join(nodeDataDirMainnet, blockLevelDB)
 	// XXX: Does not know how to handle error yet; records its error now
-	if err := renameDB(mainnetBlockDB, mainnetBlockDB+oldDBPostfix); err != nil {
+	tempPath := dockerPath.GetBlockDBPath(dockerPath.GetMainnet())
+	if err := renameDB(tempPath, dockerPath.AppendDBPostfixToPath(tempPath)); err != nil {
+		if !os.IsExist(err) {
+			finalErr = ErrCombind(finalErr, err)
+		}
+	}
+	tempPath = dockerPath.GetIndexDBPath(dockerPath.GetMainnet())
+	if err := renameDB(tempPath, dockerPath.AppendDBPostfixToPath(tempPath)); err != nil {
+		if !os.IsExist(err) {
+			finalErr = ErrCombind(finalErr, err)
+		}
+	}
+	tempPath = dockerPath.GetBlockDBPath(dockerPath.GetTestnet())
+	if err := renameDB(tempPath, dockerPath.AppendDBPostfixToPath(tempPath)); err != nil {
+		if !os.IsExist(err) {
+			finalErr = ErrCombind(finalErr, err)
+		}
+	}
+	tempPath = dockerPath.GetIndexDBPath(dockerPath.GetTestnet())
+	if err := renameDB(tempPath, dockerPath.AppendDBPostfixToPath(tempPath)); err != nil {
 		if !os.IsExist(err) {
 			finalErr = ErrCombind(finalErr, err)
 		}
 	}
 
-	mainnetIndexDB := filepath.Join(nodeDataDirMainnet, indexLevelDB)
-	if err := renameDB(mainnetIndexDB, mainnetIndexDB+oldDBPostfix); err != nil {
-		if !os.IsNotExist(err) {
-			finalErr = ErrCombind(finalErr, err)
-		}
-	}
-
-	testnetBlockDB := filepath.Join(nodeDataDirTestnet, blockLevelDB)
-	if err := renameDB(testnetBlockDB, testnetBlockDB+oldDBPostfix); err != nil {
-		if !os.IsNotExist(err) {
-			finalErr = ErrCombind(finalErr, err)
-		}
-	}
-
-	testnetIndexDB := filepath.Join(nodeDataDirTestnet, indexLevelDB)
-	if err := renameDB(testnetIndexDB, testnetIndexDB+oldDBPostfix); err != nil {
-		if !os.IsNotExist(err) {
-			finalErr = ErrCombind(finalErr, err)
-		}
-	}
 	return finalErr
 }
 
@@ -96,25 +92,33 @@ func builDefaultVolumSrcBaseDir() (string, error) {
 }
 
 func recoverBitmarkdDB() (finalErr error) {
-	mainnetBlockDB := filepath.Join(nodeDataDirMainnet, blockLevelDB)
-	if err := renameDB(mainnetBlockDB+oldDBPostfix, mainnetBlockDB); err != nil {
-		finalErr = ErrCombind(finalErr, err)
+
+	tempPath := dockerPath.GetBlockDBPath(dockerPath.GetMainnet())
+	if err := renameDB(dockerPath.AppendDBPostfixToPath(tempPath), tempPath); err != nil {
+		if !os.IsExist(err) {
+			finalErr = ErrCombind(finalErr, err)
+		}
 	}
 
-	mainnetIndexDB := filepath.Join(nodeDataDirMainnet, indexLevelDB)
-	if err := renameDB(mainnetIndexDB+oldDBPostfix, mainnetIndexDB); err != nil {
-		finalErr = ErrCombind(finalErr, err)
+	tempPath = dockerPath.GetIndexDBPath(dockerPath.GetMainnet())
+	if err := renameDB(dockerPath.AppendDBPostfixToPath(tempPath), tempPath); err != nil {
+		if !os.IsExist(err) {
+			finalErr = ErrCombind(finalErr, err)
+		}
+	}
+	tempPath = dockerPath.GetBlockDBPath(dockerPath.GetTestnet())
+	if err := renameDB(dockerPath.AppendDBPostfixToPath(tempPath), tempPath); err != nil {
+		if !os.IsExist(err) {
+			finalErr = ErrCombind(finalErr, err)
+		}
+	}
+	tempPath = dockerPath.GetIndexDBPath(dockerPath.GetTestnet())
+	if err := renameDB(dockerPath.AppendDBPostfixToPath(tempPath), tempPath); err != nil {
+		if !os.IsExist(err) {
+			finalErr = ErrCombind(finalErr, err)
+		}
 	}
 
-	testnetBlockDB := filepath.Join(nodeDataDirTestnet, blockLevelDB)
-	if err := renameDB(testnetBlockDB+oldDBPostfix, testnetBlockDB); err != nil {
-		finalErr = ErrCombind(finalErr, err)
-	}
-
-	testnetIndexDB := filepath.Join(nodeDataDirTestnet, indexLevelDB)
-	if err := renameDB(testnetIndexDB+oldDBPostfix, testnetIndexDB); err != nil {
-		finalErr = ErrCombind(finalErr, err)
-	}
 	return finalErr
 }
 
