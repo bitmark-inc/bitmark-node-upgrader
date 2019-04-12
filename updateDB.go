@@ -18,7 +18,7 @@ import (
 var versionKey = []byte{0x00, 'V', 'E', 'R', 'S', 'I', 'O', 'N'}
 
 // SetDBUpdaterReady is to setup the specific type of RemoteLatestChainFetcher and RemoteDBDownloader
-func SetDBUpdaterReady(conf ChaindataUpdaterConfig) (ChaindataUpdater, error) {
+func SetDBUpdaterReady(conf DBUpdaterConfig) (DBUpdater, error) {
 	updaterConfig := conf.(DBUpdaterHTTPSConfig).GetConfig()
 	httpUpdater := &DBUpdaterHTTPS{
 		LatestChainInfoEndpoint: updaterConfig.(DBUpdaterHTTPSConfig).APIEndpoint,

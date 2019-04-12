@@ -26,16 +26,16 @@ type CreateContainerConfig struct {
 	NetworkingConfig *network.NetworkingConfig
 }
 
-// ChaindataUpdater to get information
-type ChaindataUpdater interface {
+// DBUpdater to get information
+type DBUpdater interface {
 	IsUpdated() (main bool, test bool)
 	GetCurrentDBVersion() (mainnet int, testbet int, err error)
 	GetLatestChain() (*LatestChain, error)
 }
 
-// ChaindataUpdaterConfig Config interface
-type ChaindataUpdaterConfig interface {
-	GetConfig() ChaindataUpdaterConfig
+// DBUpdaterConfig Config interface
+type DBUpdaterConfig interface {
+	GetConfig() DBUpdaterConfig
 }
 
 // DBUpdaterHTTPS use Http to get Information
@@ -73,7 +73,7 @@ type DBUpdaterHTTPSConfig struct {
 }
 
 // GetConfig Get DBUpdaterHTTPSConfig itself
-func (d DBUpdaterHTTPSConfig) GetConfig() ChaindataUpdaterConfig {
+func (d DBUpdaterHTTPSConfig) GetConfig() DBUpdaterConfig {
 	return d
 }
 
