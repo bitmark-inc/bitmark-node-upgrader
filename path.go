@@ -95,10 +95,10 @@ func (d *DockerPath) GetUpdateDBZipFilePath(network string) string {
 
 // AppendContainerPostfixToPath take network name (mainnet or testnet) and return index leveldb path
 func (d *DockerPath) AppendContainerPostfixToPath(path string) string {
-	return filepath.Join(path, d.OldContainerPostfix)
+	return path + d.OldContainerPostfix
 }
 
 // AppendDBPostfixToPath take network name (mainnet or testnet) and return index leveldb path
 func (d *DockerPath) AppendDBPostfixToPath(path string) string {
-	return filepath.Join(path, d.OldDatabasePostfix)
+	return path + d.OldDatabasePostfix
 }
