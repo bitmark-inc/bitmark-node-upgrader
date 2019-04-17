@@ -32,6 +32,10 @@ var mockDockerCorrectDir = map[string]string{
 	"testnetZipFilePath": filepath.Join("/.config/bitmark-node", "bitmarkd/testing", "data", "snapshot.zip"),
 }
 
+func tuserHomeDir() string {
+	return "/home/pieceofr2"
+}
+
 func TestUserPath(t *testing.T) {
 	baseDir, err := builDefaultVolumSrcBaseDir()
 	assert.NoError(t, err, fmt.Sprintf("Unable to get base directory"))
@@ -51,6 +55,7 @@ func TestUserPath(t *testing.T) {
 	assert.Equal(t, mockUserCorrectDir["testnetDataDir"], userPath.GetDataPath(userPath.GetTestnet()), "testnet Data dir not match")
 	assert.Equal(t, mockUserCorrectDir["mainnetLogDir"], userPath.GetLogPath(userPath.GetMainnet()), "mainnet Data dir not match")
 	assert.Equal(t, mockUserCorrectDir["testnetLogDir"], userPath.GetLogPath(userPath.GetTestnet()), "testnet Data dir not match")
+
 }
 
 func TestDockerPath(t *testing.T) {
