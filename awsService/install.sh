@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 ########
 # This script build the code and push the code to the lambda api which is bitmark-node-info
 #####

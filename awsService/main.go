@@ -15,6 +15,17 @@ const (
 	versionFile  = "latestDBVers.json"
 )
 
+// LatestChain latest database info
+type LatestChain struct {
+	Created         string `json:"created"`
+	Version         string `json:"version"`
+	BlockHeight     int64  `json:"blockheight"`
+	DataURL         string `json:"dataurl"`
+	TestVersion     string `json:"testversion"`
+	TestBlockHeight int64  `json:"testblockheight"`
+	TestDataURL     string `json:"testdataurl"`
+}
+
 // LambdaHandler to handle lambda request
 func LambdaHandler() (*LatestChain, error) {
 	ret, err := getLatestDBInfo()
@@ -52,17 +63,6 @@ func getLatestDBInfo() (*LatestChain, error) {
 	fmt.Println("data:", string(data))
 
 	return &latestchain, nil
-}
-
-// DBInfo latest database info
-type LatestChain struct {
-	Created         string `json:"created"`
-	Version         string `json:"version"`
-	BlockHeight     int64  `json:"blockheight"`
-	DataURL         string `json:"dataurl"`
-	TestVersion     string `json:"testversion"`
-	TestBlockHeight int64  `json:"testblockheight"`
-	TestDataURL     string `json:"testdataurl"`
 }
 
 func (i *LatestChain) getVerion() (int64, error) {

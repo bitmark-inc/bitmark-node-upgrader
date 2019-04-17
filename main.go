@@ -17,8 +17,10 @@ const (
 	logPath          string = "bitmark-node-watcher.log"
 )
 
-var userPath UserPath
-var dockerPath DockerPath
+var (
+	userPath   UserPath
+	dockerPath DockerPath
+)
 
 func main() {
 	// assign it to the standard logger

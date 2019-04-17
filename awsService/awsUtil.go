@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"errors"
 	"errors"
 	"log"
 	"reflect"
@@ -40,7 +39,7 @@ func GetCredentialChain(credentialPath, profile string) *aws.Config {
 	return config
 }
 
-//NewS3Service : Create a new session of S3 service
+// NewS3Service : Create a new session of S3 service
 func NewS3Service(credentialPath, profile, region string) (*s3.S3, error) {
 	config := GetCredentialChain(credentialPath, profile)
 	config.WithRegion(region)
@@ -68,12 +67,10 @@ func S3Request(service *s3.S3, input interface{}) (output interface{}, err error
 	case "GetObjectInput":
 		p := input.(s3.GetObjectInput)
 		output, err = service.GetObject(&p)
-
 	case "DeleteObjectInput":
 		p := input.(s3.DeleteObjectInput)
 		output, err = service.DeleteObject(&p)
 	}
-
 	if err != nil {
 		log.Println("S3Request Err:", err)
 		return nil, err

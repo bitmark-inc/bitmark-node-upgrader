@@ -8,10 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func tuserHomeDir() string {
-	return "/home/pieceofr2"
-}
-
 var mockUserCorrectDir = map[string]string{
 	"baseDir":        filepath.Join(tuserHomeDir(), "bitmark-node-data-test"),
 	"nodeDBDir":      filepath.Join(tuserHomeDir(), "bitmark-node-data-test", "db"),
@@ -41,7 +37,6 @@ func TestUserPath(t *testing.T) {
 	assert.NoError(t, err, fmt.Sprintf("Unable to get base directory"))
 
 	userPath := UserPath{
-		//	BaseDir:        "/home/pieceofr2/bitmark-node-data-test",
 		BaseDir:        baseDir,
 		NodeDBDir:      "db",
 		MainnetDataDir: "data",
@@ -56,7 +51,6 @@ func TestUserPath(t *testing.T) {
 	assert.Equal(t, mockUserCorrectDir["testnetDataDir"], userPath.GetDataPath(userPath.GetTestnet()), "testnet Data dir not match")
 	assert.Equal(t, mockUserCorrectDir["mainnetLogDir"], userPath.GetLogPath(userPath.GetMainnet()), "mainnet Data dir not match")
 	assert.Equal(t, mockUserCorrectDir["testnetLogDir"], userPath.GetLogPath(userPath.GetTestnet()), "testnet Data dir not match")
-
 }
 
 func TestDockerPath(t *testing.T) {
