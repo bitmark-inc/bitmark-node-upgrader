@@ -1,4 +1,4 @@
-#!bin/bash
+#!/usr/bin/env sh
 ########
 # This script build the code and push latestDBVers.Json to S3
 # You need to have your aws-cli profile to use aws-cli
