@@ -26,6 +26,10 @@ type LatestChain struct {
 	TestDataURL     string `json:"testdataurl"`
 }
 
+func main() {
+	lambda.Start(LambdaHandler)
+}
+
 // LambdaHandler to handle lambda request
 func LambdaHandler() (*LatestChain, error) {
 	ret, err := getLatestDBInfo()
@@ -34,10 +38,6 @@ func LambdaHandler() (*LatestChain, error) {
 	}
 
 	return ret, nil
-}
-
-func main() {
-	lambda.Start(LambdaHandler)
 }
 
 func getLatestDBInfo() (*LatestChain, error) {
