@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 ## How to run bitmarkNodeWatcher as a docker container
 ## Setup your nase mount directory (here is staging directory)
 # -v $nodeDir/watcherlog:/var/log \
