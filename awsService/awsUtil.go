@@ -16,6 +16,7 @@ import (
 // AWSDefault : a struct to save default value
 type AWSDefault struct {
 	CredentialPath string
+	FromGenesis    bool
 	Profile        string
 	Region         string
 	Bucket         string

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -77,7 +76,7 @@ func (r *DBUpdaterHTTPS) GetCurrentDBVersion() (mainnet int, testbet int, err er
 	return version, 0, nil
 }
 
-// IsUpdated is current databse updated
+// IsUpdated is to check if current databse is updated
 func (r *DBUpdaterHTTPS) IsUpdated() (main bool, test bool) {
 	if r.CurrentDBVer != 0 {
 		latestVer, err := r.Latest.GetVerion()
@@ -112,14 +111,31 @@ func (r *DBUpdaterHTTPS) GetLatestChain() (*LatestChain, error) {
 	return &latestChain, err
 }
 
+// IsStartFromGenesis is to check if current databse is updated
+func (r *DBUpdaterHTTPS) IsStartFromGenesis() bool {
+	if true == r.Latest.FromGenesis {
+		return true
+	}
+	return false
+}
+
 // UpdateToLatestDB Download latest and update the local database
 func (r *DBUpdaterHTTPS) UpdateToLatestDB() error {
-	mainnet, testnet := r.IsUpdated()
-	if mainnet && testnet {
-		log.Info("UpdateToLatestDB IsUpdated")
+	mainnetUpdated, testnetUpdated := r.IsUpdated()
+	if mainnetUpdated && testnetUpdated {
+		log.Info("mainnet and testnet are all updated")
 		return nil
 	}
-	if !mainnet {
+	if r.IsStartFromGenesis() { // Chain should start from genesis
+		//Rename old Database
+		renameErr := renameBitmarkdDB()
+		if renameErr != nil {
+			return renameErr
+		}
+		return nil
+	}
+
+	if !mainnetUpdated {
 		err := r.downloadfile("mainnet")
 		if err != nil {
 			return err
@@ -134,7 +150,7 @@ func (r *DBUpdaterHTTPS) UpdateToLatestDB() error {
 			r.Latest = LatestChain{}
 			return ErrCombind(err, recoverErr)
 		}
-		fmt.Println("UpdateToLatestDB Successful")
+		log.Warning("UpdateToLatestDB Successful")
 
 		err = removeFile(r.ZipSourcePath)
 		if err != nil { // nice to have so does not return error even it has error

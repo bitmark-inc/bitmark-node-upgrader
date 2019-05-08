@@ -20,6 +20,7 @@ type LatestChain struct {
 	Created         string `json:"created"`
 	Version         string `json:"version"`
 	BlockHeight     int64  `json:"blockheight"`
+	FromGenesis     bool   `json:"fromgenesis"`
 	DataURL         string `json:"dataurl"`
 	TestVersion     string `json:"testversion"`
 	TestBlockHeight int64  `json:"testblockheight"`

@@ -106,6 +106,7 @@ func (d DBUpdaterHTTPSConfig) GetConfig() DBUpdaterConfig {
 type LatestChain struct {
 	Created         string `json:"created"`
 	Version         string `json:"version"`
+	FromGenesis     bool   `json:"fromgenesis"`
 	BlockHeight     int    `json:"blockheight"`
 	DataURL         string `json:"dataurl"`
 	TestVersion     string `json:"testversion"`
