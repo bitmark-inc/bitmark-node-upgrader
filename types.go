@@ -44,7 +44,7 @@ type NodeWatcher struct {
 	Postfix          string
 }
 
-// CreateConfig collect configs to create a container
+// CreateContainerConfig collect configs to create a container
 type CreateContainerConfig struct {
 	Config           *container.Config
 	HostConfig       *container.HostConfig
@@ -56,6 +56,8 @@ type DBUpdater interface {
 	IsUpdated() (main bool, test bool)
 	GetCurrentDBVersion() (mainnet int, testbet int, err error)
 	GetLatestChain() (*LatestChain, error)
+	IsStartFromGenesis() bool
+	IsForceUpdate() bool
 }
 
 // DBUpdaterConfig Config interface
@@ -105,6 +107,7 @@ func (d DBUpdaterHTTPSConfig) GetConfig() DBUpdaterConfig {
 // LatestChain latest database info
 type LatestChain struct {
 	Created         string `json:"created"`
+	ForceUpdate     bool   `json:"forceupdate"`
 	Version         string `json:"version"`
 	FromGenesis     bool   `json:"fromgenesis"`
 	BlockHeight     int    `json:"blockheight"`

@@ -18,6 +18,7 @@ const (
 // LatestChain latest database info
 type LatestChain struct {
 	Created         string `json:"created"`
+	ForceUpdate     string `json:"forceupdate"`
 	Version         string `json:"version"`
 	BlockHeight     int64  `json:"blockheight"`
 	FromGenesis     bool   `json:"fromgenesis"`

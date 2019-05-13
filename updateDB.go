@@ -78,6 +78,9 @@ func (r *DBUpdaterHTTPS) GetCurrentDBVersion() (mainnet int, testbet int, err er
 
 // IsUpdated is to check if current databse is updated
 func (r *DBUpdaterHTTPS) IsUpdated() (main bool, test bool) {
+	if r.IsForceUpdate() {
+		return false, true
+	}
 	if r.CurrentDBVer != 0 {
 		latestVer, err := r.Latest.GetVerion()
 		if err != nil {
@@ -114,6 +117,14 @@ func (r *DBUpdaterHTTPS) GetLatestChain() (*LatestChain, error) {
 // IsStartFromGenesis is to check if current databse is updated
 func (r *DBUpdaterHTTPS) IsStartFromGenesis() bool {
 	if true == r.Latest.FromGenesis {
+		return true
+	}
+	return false
+}
+
+// IsForceUpdate is to check if current databse is updated
+func (r *DBUpdaterHTTPS) IsForceUpdate() bool {
+	if true == r.Latest.ForceUpdate {
 		return true
 	}
 	return false
