@@ -61,7 +61,12 @@ func main() {
 		verbose := c.GlobalBool("verbose")
 		log.Init("bitmark-node-updater-log", verbose, false, logfile)
 		log.Info("create log file in bitmark-node-updater-log")
-		defer logfile.Close()
+		defer func() {
+			deferErr := logfile.Close()
+			if deferErr == nil {
+				fmt.Println("log file close successful")
+			}
+		}()
 
 		ctx := context.Background()
 		client, err := client.NewEnvClient()
@@ -111,8 +116,8 @@ func main() {
 		log.Info("Start Monitor host:", c.GlobalString("host"), "image:", c.GlobalString("image"))
 		return nil
 	}
-	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+	if runErr := app.Run(os.Args); runErr != nil {
+		log.Fatal(runErr)
 	}
 }
 
