@@ -7,8 +7,8 @@ ENV PATH="/go/bin:${PATH}"
 ENV GO111MODULE on
 
 RUN cd /go/src && \
-git clone https://github.com/bitmark-inc/bitmark-node-updater && \
-cd /go/src/bitmark-node-updater && go mod download && \
+git clone https://github.com/bitmark-inc/bitmark-node-upgrader && \
+cd /go/src/bitmark-node-upgrader && go mod download && \
 go install && cd /go/bin
 
 ADD dockerAssets/start.sh /
