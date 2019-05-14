@@ -1,4 +1,4 @@
-module bitmark-node-updater
+module bitmark-node-upgrader
 
 go 1.12
 
