@@ -19,6 +19,7 @@ var versionKey = []byte{0x00, 'V', 'E', 'R', 'S', 'I', 'O', 'N'}
 // SetDBUpdaterReady is to setup the specific type of RemoteLatestChainFetcher and RemoteDBDownloader
 func SetDBUpdaterReady(conf DBUpdaterConfig) (DBUpdater, error) {
 	updaterConfig := conf.(DBUpdaterHTTPSConfig).GetConfig()
+	log.Warning(updaterConfig.GetConfig().(DBUpdaterHTTPSConfig).APIEndpoint)
 	httpUpdater := &DBUpdaterHTTPS{
 		LatestChainInfoEndpoint: updaterConfig.(DBUpdaterHTTPSConfig).APIEndpoint,
 		CurrentDBPath:           updaterConfig.(DBUpdaterHTTPSConfig).CurrentDBPath,
@@ -181,6 +182,7 @@ func (r *DBUpdaterHTTPS) downloadfile(network string) error {
 	} else {
 		downloadURL = r.Latest.DataURL
 	}
+	log.Warning("### downloadURL" + downloadURL)
 	resp, err := http.Get(downloadURL)
 
 	if err != nil {

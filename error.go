@@ -35,6 +35,9 @@ var ( // Error variable
 	// DBUpdater Errors
 	ErrorSetDBUpdaterReady = errors.New("SetDBUpdaterReady failed")
 	ErrorUpdateToLatestDB  = errors.New("UpdateToLatestDB failed")
+
+	// Build BaseDir Error
+	ErrorBuildBaseDir = errors.New("builDefaultVolumSrcBaseDir failed")
 )
 
 // Combine all Errors together

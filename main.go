@@ -54,24 +54,20 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
-		logfile, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
-		if err != nil {
-			fmt.Printf("error opening file: %v", err)
+		logfile, logerr := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+		if logerr != nil {
+			fmt.Printf("error opening file: %v", logerr)
 		}
 		verbose := c.GlobalBool("verbose")
 		log.Init("bitmark-node-updater-log", verbose, false, logfile)
-		log.Info("create log file in bitmark-node-updater-log")
-		defer func() {
-			deferErr := logfile.Close()
-			if deferErr == nil {
-				fmt.Println("log file close successful")
-			}
-		}()
 
 		ctx := context.Background()
 		client, err := client.NewEnvClient()
 		if err != nil {
-			log.Error(ErrorGetAPIFail)
+			if logerr == nil {
+				log.Error(ErrorGetAPIFail)
+				logfile.Close()
+			}
 			return err
 		}
 		// Create a Docker API Client and current Context
@@ -80,6 +76,10 @@ func main() {
 		containerName := c.GlobalString("name")
 		baseDir, err := builDefaultVolumSrcBaseDir()
 		if err != nil {
+			if logerr == nil {
+				log.Error(ErrorBuildBaseDir)
+				logfile.Close()
+			}
 			return err
 		}
 
@@ -110,10 +110,17 @@ func main() {
 			Repo: dockerRepo, ImageName: dockerImage, ContainerName: containerName, Postfix: dockerPath.OldContainerPostfix}
 		err = StartMonitor(watcher)
 		if err != nil {
-			log.Errorf(ErrorStartMonitorService.Error(), " image name:", watcher.ImageName)
+			if logerr == nil {
+				log.Errorf(ErrorStartMonitorService.Error(), " image name:", watcher.ImageName)
+				logfile.Close()
+			}
 			return err
 		}
-		log.Info("Start Monitor host:", c.GlobalString("host"), "image:", c.GlobalString("image"))
+		if logerr == nil {
+			log.Info("Start Monitor host:", c.GlobalString("host"), "image:", c.GlobalString("image"))
+			logfile.Close()
+			return nil
+		}
 		return nil
 	}
 	if runErr := app.Run(os.Args); runErr != nil {
