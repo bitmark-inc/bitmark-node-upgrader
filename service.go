@@ -74,12 +74,10 @@ func StartMonitor(watcher NodeWatcher) error {
 		dbUpdater, err := SetDBUpdaterReady(updateDBConf)
 		if err != nil {
 			log.Error(ErrCombind(ErrorSetDBUpdaterReady, err))
-			continue
 		}
 		err = dbUpdater.(*DBUpdaterHTTPS).UpdateToLatestDB()
 		if err != nil {
 			log.Error(ErrCombind(ErrorUpdateToLatestDB, err))
-			continue
 		}
 		err = watcher.startContainer(newContainer.ID)
 		if err != nil {
