@@ -9,6 +9,28 @@ import (
 	dockerClient "github.com/docker/docker/client"
 )
 
+// NodeAction bitmarkd API type
+type NodeAction int
+
+const (
+	bitmarkdStart NodeAction = iota
+	bitmarkdStop
+	recorderdStart
+	recorderdStop
+)
+
+// BitmarkdServResp API response for bitmarkd service
+type BitmarkdServResp struct {
+	Message string `json:"msg"`
+	OK      int    `json:"ok"`
+}
+
+// RecorderdServResp API response for bitmarkd service
+type RecorderdServResp struct {
+	Message string `json:"msg"`
+	OK      int    `json:"ok"`
+}
+
 // UserPath is uesed to store user file path
 type UserPath struct {
 	BaseDir        string

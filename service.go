@@ -92,6 +92,9 @@ func StartMonitor(watcher NodeWatcher) error {
 				log.Error(ErrCombind(ErrorRecoverDB, err))
 			}
 			continue
+		} else { // No container error start services
+			NodeAPI("", bitmarkdStart)
+			NodeAPI("", recorderdStart)
 		}
 		log.Info("Start container successfully")
 	}
@@ -169,6 +172,9 @@ func firstTimeUpdateDB(watcher *NodeWatcher) (err error) {
 			if err != nil {
 				log.Error(ErrCombind(ErrorRecoverDB, err))
 			}
+		} else { // Start Container Successfully, start bitmarkd and recorderd
+			NodeAPI("", bitmarkdStart)
+			NodeAPI("", recorderdStart)
 		}
 	}
 	return nil
