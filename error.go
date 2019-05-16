@@ -11,6 +11,7 @@ var ( // Error variable
 	ErrorRenameDB       = errors.New("rename db failed")
 	ErrorRecoverDB      = errors.New("rename db failed")
 	// Process Error
+	ErrorFirstUpdateDB           = errors.New("First UpdateDB failed")
 	ErrorGetAPIFail              = errors.New("Get Docker API failed")
 	ErrorStartMonitorService     = errors.New("StartMonitor failed")
 	ErrorListenContainer         = errors.New("Listen Container failed")
