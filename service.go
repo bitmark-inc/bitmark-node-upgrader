@@ -38,11 +38,6 @@ func StartMonitor(watcher NodeWatcher) error {
 		log.Error(err)
 		return err
 	}
-	// Force check CheckUpdateDB for existing database
-	err = firstTimeUpdateDB(&watcher)
-	if err != nil {
-		log.Error(ErrCombind(ErrorFirstUpdateDB, err))
-	}
 	for {
 		updated := make(chan bool)
 		go imageUpdateCheckRoutine(&watcher, updated)
@@ -137,49 +132,6 @@ func imageUpdateCheckRoutine(w *NodeWatcher, updateStatus chan bool) {
 	}
 }
 
-func firstTimeUpdateDB(watcher *NodeWatcher) (err error) {
-	nodeContainers, err := watcher.getContainersWithImage()
-	log.Warning("start firstTimeUpdateDB check...")
-	if err != nil { //not found is not an error
-		log.Error(ErrCombind(ErrorGetContainerWithImage, err))
-		return nil
-	}
-	if len(nodeContainers) != 0 { // Container exist
-		log.Warning("container found start to upgrade db process ...")
-		nameContainer := watcher.getNamedContainer(nodeContainers)
-		if nameContainer == nil { //not found is not an error
-			log.Warning(ErrorNamedContainerNotFound.Error())
-			return nil
-		}
-		namedContainers := append([]types.Container{}, *nameContainer)
-		err = watcher.stopContainers(namedContainers, containerStopWaitTime)
-		if err != nil { //inspect fail is an error because we can not do anything about existing error
-			return err
-		}
-		updateDBConf, err := makeUpdateDBConfig()
-		dbUpdater, err := SetDBUpdaterReady(updateDBConf)
-		if err != nil {
-			log.Error(ErrCombind(ErrorSetDBUpdaterReady, err))
-		}
-		err = dbUpdater.(*DBUpdaterHTTPS).UpdateToLatestDB()
-		if err != nil {
-			log.Error(ErrCombind(ErrorUpdateToLatestDB, err))
-		}
-		err = watcher.startContainer(nameContainer.ID)
-		if err != nil {
-			log.Error(ErrCombind(ErrorContainerStart, err))
-			err = recoverBitmarkdDB()
-			if err != nil {
-				log.Error(ErrCombind(ErrorRecoverDB, err))
-			}
-		} else { // Start Container Successfully, start bitmarkd and recorderd
-			NodeAPI("", bitmarkdStart)
-			NodeAPI("", recorderdStart)
-		}
-	}
-	return nil
-}
-
 // handleExistingContainer handle existing container and return old container config for recreating a new container
 func handleExistingContainer(watcher NodeWatcher) (*CreateContainerConfig, error) {
 	nodeContainers, err := watcher.getContainersWithImage()
@@ -243,7 +195,6 @@ func getDefaultConfig(watcher *NodeWatcher) (*CreateContainerConfig, error) {
 	if len(chain) == 0 {
 		chain = "bitmark"
 	}
-	log.Info("PUBLIC_IP="+publicIP, "NETWORK="+chain)
 	additionEnv := append([]string{}, "PUBLIC_IP="+publicIP, "NETWORK="+chain)
 	exposePorts := nat.PortMap{
 		"2136/tcp": []nat.PortBinding{
