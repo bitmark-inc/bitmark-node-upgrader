@@ -3,8 +3,8 @@
     "forceupdate":true,
     "version":"0x200",
     "fromgenesis":false,
-    "blockheight":199573,
-    "dataurl":"https://s3-ap-northeast-1.amazonaws.com/bitmark-node-update/chaindata/bitmarkdv0.10.6_block19573.zip",
+    "blockheight":192973,
+    "dataurl":"https://s3-ap-northeast-1.amazonaws.com/bitmark-node-update/chaindata/bitmarkdv0.10.5_block192973.zip",
     "testversion":"0x200",
     "testblockheight":17433,
     "testdataurl":"https://s3-ap-northeast-1.amazonaws.com/bitmark-node-update/chaindata/bitmarkdv0.10.5_testdata.zip"

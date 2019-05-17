@@ -16,8 +16,9 @@ import (
 const (
 	// Time Interval
 	containerStopWaitTime = 15 * time.Second
-	pullImageInterval     = 20 * time.Second // Change to a longer Interval after finishing develop
+	pullImageInterval     = 120 * time.Second // Change to a longer Interval after finishing develop
 	recoverWaitTime       = 20 * time.Second
+	runAPIDelayTime       = 5 * time.Second
 	// UpdateDB Endpoint
 	updateDBEndPoint = "https://0u08da25ba.execute-api.ap-northeast-1.amazonaws.com/v1/chaindata"
 )
@@ -88,10 +89,10 @@ func StartMonitor(watcher NodeWatcher) error {
 			}
 			continue
 		} else { // No container error start services
-			NodeAPI("", bitmarkdStart)
-			NodeAPI("", recorderdStart)
+			go runBitmarkdRecorderd()
 		}
 		log.Info("Start container successfully")
+		time.Sleep(pullImageInterval) // This run start immediately
 	}
 }
 
@@ -278,4 +279,10 @@ func makeUpdateDBConfig() (DBUpdaterHTTPSConfig, error) {
 		ZipDestinationPath: dockerPath.GetDataPath(dockerPath.GetMainnet()),
 	}
 	return config, nil
+}
+
+func runBitmarkdRecorderd() {
+	time.Sleep(runAPIDelayTime)
+	NodeAPI("", bitmarkdStart)
+	NodeAPI("", recorderdStart)
 }

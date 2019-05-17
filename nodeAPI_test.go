@@ -4,11 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
+///////////
+// Stand alone test by using go test  nodeAPI_test.go nodeAPI.go types.go
+// Run and Observe bitmark-node GUI
+//////////
+
 func TestBitmarkdStart(t *testing.T) {
+	time.Sleep(6 * time.Second)
 	body, err := NodeAPI("", bitmarkdStart)
 	var resp BitmarkdServResp
 	json.Unmarshal(body, &resp)
@@ -17,7 +24,9 @@ func TestBitmarkdStart(t *testing.T) {
 	assert.NoError(t, err, "NodeAPI TestBitmarkdStart error")
 
 }
+
 func TestBitmarkdStop(t *testing.T) {
+	time.Sleep(6 * time.Second)
 	body, err := NodeAPI("", bitmarkdStop)
 	var resp BitmarkdServResp
 	json.Unmarshal(body, &resp)
@@ -27,6 +36,7 @@ func TestBitmarkdStop(t *testing.T) {
 
 }
 func TestRecorderdStart(t *testing.T) {
+	time.Sleep(6 * time.Second)
 	body, err := NodeAPI("", recorderdStart)
 	var resp RecorderdServResp
 	json.Unmarshal(body, &resp)
@@ -36,6 +46,7 @@ func TestRecorderdStart(t *testing.T) {
 }
 
 func TestRecorderdStop(t *testing.T) {
+	time.Sleep(6 * time.Second)
 	body, err := NodeAPI("", recorderdStop)
 	var resp RecorderdServResp
 	json.Unmarshal(body, &resp)
